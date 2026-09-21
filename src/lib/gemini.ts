@@ -2,11 +2,15 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 let geminiClient: GoogleGenerativeAI | null = null;
 
+export function getGeminiApiKey(): string | undefined {
+  return process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+}
+
 export function getGeminiClient(): GoogleGenerativeAI {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     throw new Error(
-      'GEMINI_API_KEY is not set in environment variables. Please add GEMINI_API_KEY to your .env.local file.'
+      'GEMINI_API_KEY (or GOOGLE_GENERATIVE_AI_API_KEY) is not set. Add it to .env.local — see .env.example.'
     );
   }
   if (!geminiClient) {
@@ -53,16 +57,21 @@ export async function callGeminiJson<T>(
       const text = response.text();
       const cleaned = cleanJsonResponse(text);
       return JSON.parse(cleaned) as T;
-    } catch (err: any) {
+    } catch (err: unknown) {
       lastError = err;
+      const message = err instanceof Error ? err.message : '';
+      const status =
+        typeof err === 'object' && err !== null && 'status' in err
+          ? (err as { status?: number }).status
+          : undefined;
       const isRateLimit =
-        err?.status === 429 ||
-        err?.message?.includes('429') ||
-        err?.message?.includes('RESOURCE_EXHAUSTED');
+        status === 429 ||
+        message.includes('429') ||
+        message.includes('RESOURCE_EXHAUSTED');
       const isTransient =
-        err?.status === 503 ||
-        err?.message?.includes('503') ||
-        err?.message?.includes('overloaded');
+        status === 503 ||
+        message.includes('503') ||
+        message.includes('overloaded');
 
       if ((isRateLimit || isTransient) && attempt < maxRetries) {
         // Wait with exponential backoff

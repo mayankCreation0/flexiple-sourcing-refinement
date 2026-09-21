@@ -1,134 +1,221 @@
-# Flexiple AI Recruiter: The Sourcing Refinement Loop
+# Flexiple AI Recruiter — Sourcing Refinement Loop
 
-A full-stack, AI-powered sourcing refinement platform built for the **Flexiple Engineering Challenge**.
+Full-stack AI sourcing refinement app built for the **Flexiple Engineering Challenge**.
 
-This application implements the sourcing refinement loop end-to-end: a recruiter enters a free-text requirement, the server-side LLM extracts structured objective filters and a subjective fit rubric, screens candidate profiles against hard constraints from the talent pool, scores candidates with **grounded, field-level citations**, refines the criteria dynamically based on conversational recruiter feedback, and freezes the finalized shortlist.
-
----
-
-## Live Demo & Loom Walkthrough
-- **Framework**: Next.js 16 (App Router) + TypeScript + Tailwind CSS
-- **Deployment**: Vercel-ready (Serverless, zero external database dependencies)
-- **Primary LLM**: Google Gemini 1.5 Flash via `@google/generative-ai`
-- **Loom Walkthrough**: [Link to 15-minute Loom Walkthrough] *(Insert Loom link here)*
+A recruiter enters a free-text hiring requirement. The app uses **Google Gemini** to extract objective filters and a subjective fit rubric, deterministically filters **48 local profiles**, scores candidates with **field-level citations**, accepts recruiter feedback to refine the search, and freezes a final shortlist.
 
 ---
 
-## Getting Started
+## Live Demo
 
-### 1. Prerequisites
-- Node.js 18+ or 20+
-- A Google Gemini API Key (free tier available at [Google AI Studio](https://aistudio.google.com/))
+> Add your Vercel URL here after deployment, e.g. `https://flexiple-sourcing-refinement.vercel.app`
 
-### 2. Environment Variable
-Create a `.env.local` file in the project root:
+**Loom walkthrough (≤15 min):** [Insert your Loom link here]
+
+---
+
+## Quick Start (Evaluator Instructions)
+
+Evaluators should be able to run the app locally in **two commands** after setting the API key.
 
 ```bash
+git clone git@github.com:mayankCreation0/flexiple-sourcing-refinement.git
+cd flexiple-sourcing-refinement
+npm install
 cp .env.example .env.local
+# Edit .env.local and add your Gemini API key (see below)
+npm run dev
 ```
 
-Populate the required environment variable:
+Open [http://localhost:3000](http://localhost:3000).
+
+### Production build (optional)
+
+```bash
+npm run build
+npm start
+```
+
+---
+
+## API Key Environment Variable
+
+Obtain a free key from [Google AI Studio](https://aistudio.google.com/).
+
+Create `.env.local` in the project root:
+
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-> **API Key Name**: `GEMINI_API_KEY` (read strictly server-side in API route handlers; never exposed to the client bundle).
+**Supported variable names** (either works — server-side only, never exposed to the client):
 
-### 3. Install Dependencies & Run Locally
+| Variable | Description |
+|---|---|
+| `GEMINI_API_KEY` | Primary (recommended) |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Alias also supported |
 
-```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+See [`.env.example`](.env.example) for the template.
 
 ---
 
-## Architectural Flow & Pipeline
+## Repository Structure
 
+```text
+flexiple-sourcing-refinement/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── search/route.ts    # Free-text → filters + rubric + initial ranking
+│   │   │   ├── refine/route.ts    # Feedback → updated filters/rubric + re-rank
+│   │   │   └── rerank/route.ts    # Manual criteria edits → re-rank
+│   │   ├── page.tsx               # Main recruiter UI
+│   │   └── layout.tsx
+│   ├── components/                # UI components (cards, drawer, refinement chat, etc.)
+│   ├── data/
+│   │   └── profiles.json          # 48 candidate profiles (local talent pool)
+│   ├── lib/                       # Filtering, Gemini client, validation, fallbacks
+│   └── prompts/                   # LLM prompts (reviewed by evaluators)
+│       ├── parse-search.ts
+│       ├── score-candidates.ts
+│       └── refine-search.ts
+├── .env.example
+├── README.md
+└── package.json
 ```
-  [ Recruiter Free-Text Prompt ]
-                │
-                ▼
-  [ 1. Extraction: /api/search ]
-    - Structured Objective Filters (Skills, YoE, Location, Company Type)
-    - Subjective Fit Rubric (Mission, Competencies, Green/Red Flags)
-                │
-                ▼
-  [ 2. Deterministic Screening ]
-    - Local filter engine over 48 profiles in profiles.json
-    - Soft relaxation if hard criteria are overly restrictive
-                │
-                ▼
-  [ 3. LLM Grounded Scoring ]
-    - Scores candidate profiles against the rubric (0-100%)
-    - Strict citation requirement: cites actual fields (company, YoE, skills)
-    - Ranks top 4-5 candidate cards
-                │
-                ▼
-  [ 4. Refinement Loop: /api/refine ]
-    - Conversational feedback ("1 is too junior, 2 and 4 are right")
-    - Per-profile Yes/No match reactions
-    - LLM adjusts filters & rubric, explaining WHAT changed and WHY
-                │
-                ▼
-  [ 5. Direct Criteria Edits: /api/rerank ]
-    - Recruiter can manually adjust any filter or rubric parameter
-    - Instant re-filtering and scoring
-                │
-                ▼
-  [ 6. Freeze Search ]
-    - Locked shortlist presentation
-    - Export to JSON & formatted copy for outreach
+
+---
+
+## End-to-End Flow
+
+```text
+Free-text requirement
+        ↓
+/api/search  →  Gemini extracts objective filters + subjective rubric
+        ↓
+Deterministic filter over profiles.json (48 profiles)
+        ↓
+Gemini scores filtered candidates with field citations
+        ↓
+Top 4–5 ranked candidate cards displayed
+        ↓
+Recruiter Match/Skip + free-text refinement
+        ↓
+/api/refine  →  Gemini adjusts filters/rubric + explains what changed & why
+        ↓
+New ranked results
+        ↓
+Freeze Search  →  Final filters, rubric, and shortlist (export JSON / copy)
 ```
 
 ---
 
 ## Engineering Decisions: What We Prioritised, What We Cut, and Why
 
-### What We Prioritised
-1. **Field-Specific Grounded Citations**:
-   - Generic LLM praise ("impressive background", "hard worker") destroys recruiter trust. We engineered the scoring prompt to strictly cite candidate fields (e.g. `NimbusPay (startup)`, `6 years YoE`, `AWS RDS + PostgreSQL`, `IIT Madras`).
-2. **Transparent Diff Explanations**:
-   - When a recruiter submits feedback like *"1 is too junior, 2 and 4 are right"*, the system explicitly articulates **what changed** (e.g. raised minimum YoE from 4 to 5) and **why** (tied directly to candidate #1's seniority).
-3. **Editable Strategy Drawer**:
-   - The recruiter remains in full control. Objective filters and subjective rubric criteria can be inspected at a glance and directly edited at any point, with instant re-ranking.
-4. **Resilient Failure & Recovery Architecture**:
-   - Rate limits (HTTP 429), API quota exhaustion, and malformed outputs are intercepted with exponential backoff retries and descriptive recovery banners rather than unhandled crashes.
-   - Includes an in-app **"Simulate Loom Failure Demo"** button to easily demonstrate graceful error handling during walkthroughs.
-5. **Zero-Setup Vercel Deployment**:
-   - Session state is managed reactively on the client while LLM calls and profile filtering remain server-side. No database setup or migrations are needed to run locally or deploy to Vercel.
+### What we prioritised
 
-### What We Cut (and Why)
-1. **User Authentication & Multi-Role Permissions**:
-   - Cut per challenge instructions (*"no login, no multiple roles, no persistence across sessions"*). Omitting auth kept the focus strictly on recruiter interaction quality and LLM reasoning.
-2. **External Vector Database (e.g. Pinecone/Qdrant)**:
-   - For a 48-profile dataset, local in-memory filtering combined with direct LLM ranking is faster (0ms DB latency), fully deterministic, and avoids external network points of failure.
-3. **Heavy UI Component Libraries**:
-   - Handcrafted Tailwind CSS components tailored to modern recruiting SaaS interfaces (Linear/Ashby aesthetic) avoided bulky third-party dependencies and CSS conflicts.
+1. **End-to-end sourcing refinement loop** — search → rank → feedback → refine → freeze in one session
+2. **Real LLM integration** — Gemini API for extraction, scoring, and refinement (with heuristic fallback on rate limits)
+3. **Structured LLM output** — JSON-mode responses validated with Zod schemas
+4. **Deterministic objective filtering** — hard constraints applied locally over `profiles.json` before LLM scoring
+5. **Evidence-based explanations** — every candidate card cites actual profile fields (company, YoE, skills, education)
+6. **Visible refinement diff** — app shows what changed in filters/rubric and why after each feedback round
+7. **Recruiter control** — editable filters and rubric with instant re-rank via `/api/rerank`
+8. **Designed UI states** — empty, loading/thinking, empty results, LLM error + retry, frozen shortlist
+9. **Failure/recovery demo** — "Simulate 429 Demo" button for Loom walkthrough of graceful error handling
 
----
+### What we cut
 
-## Repository Prompts
+| Cut | Why |
+|---|---|
+| Authentication / login | Assignment focuses on one recruiter session, not multi-user access |
+| Database / persistence | 48-profile dataset fits in memory; no migrations needed |
+| Search history across sessions | Single-session refinement loop is the product goal |
+| Multiple recruiter roles | Out of scope per assignment brief |
+| Vector DB / external talent infra | Unnecessary for 48 profiles; local filter + LLM rank is faster and deterministic |
+| Heavy UI libraries | Custom Tailwind components for a focused recruiting workspace |
 
-All LLM prompts are centralized and documented in [`src/lib/prompts/`](file:///Users/user/Documents/my%20folder/flexiple-sourcing-refinement/src/lib/prompts):
-- [`parseRequirements.ts`](file:///Users/user/Documents/my%20folder/flexiple-sourcing-refinement/src/lib/prompts/parseRequirements.ts): Free-text requirement to objective filters + subjective rubric.
-- [`scoreCandidates.ts`](file:///Users/user/Documents/my%20folder/flexiple-sourcing-refinement/src/lib/prompts/scoreCandidates.ts): Candidate evaluation with field citations and fit scoring.
-- [`refineSearch.ts`](file:///Users/user/Documents/my%20folder/flexiple-sourcing-refinement/src/lib/prompts/refineSearch.ts): Natural language and reaction feedback translation to criteria adjustments.
+The supplied dataset is only **48 profiles** and the assignment explicitly focuses on **one sourcing session**, so we prioritised recruiter experience, LLM reasoning quality, and the refinement loop over production-scale infrastructure.
 
 ---
 
-## Verification & Test Checklist
+## LLM Prompts
 
-- [x] TypeScript compilation passes without errors (`npm run build`).
-- [x] Tested with the challenge prompt: *"RDS developers with 4-7 years of experience who have worked at startups, for a role based in Bangalore."*
-- [x] Objective filters extracted: Skills (`AWS RDS`, `PostgreSQL`), YoE (`4-7`), Location (`Bangalore`), Company types (`startup`).
-- [x] Top 4-5 profiles scored and ranked with verified field citations.
-- [x] Conversational refinement tested with *"1 is too junior, 2 and 4 are right"*.
-- [x] Criteria drawer supports direct editing and re-ranking.
-- [x] Freeze search locks state, triggers confetti, and enables shortlist export.
-- [x] Error handling & recovery tested for missing API keys and simulated rate limits.
+Prompts live in [`src/prompts/`](src/prompts/) as required by the assignment:
+
+| File | Purpose |
+|---|---|
+| [`parse-search.ts`](src/prompts/parse-search.ts) | Free-text → objective filters + subjective rubric |
+| [`score-candidates.ts`](src/prompts/score-candidates.ts) | Rubric-based scoring with field citations |
+| [`refine-search.ts`](src/prompts/refine-search.ts) | Feedback → filter/rubric adjustments + change explanation |
+
+---
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm start` | Run production server |
+| `npm run lint` | ESLint |
+| `npm run type-check` | TypeScript check |
+
+Pre-commit hooks (Husky + lint-staged) run ESLint and `tsc --noEmit` on staged `.ts`/`.tsx` files.
+
+---
+
+## Submission Checklist
+
+### Functionality
+
+- [x] Free-text search with real Gemini LLM calls
+- [x] Objective filters + subjective rubric generated
+- [x] Filters and rubric editable with re-rank
+- [x] `profiles.json` filtered deterministically
+- [x] Candidates LLM-scored with top 4–5 displayed
+- [x] Explanations cite actual profile fields
+- [x] Match/Skip + free-text refinement
+- [x] LLM changes filters/rubric with visible diff + rationale
+- [x] Repeatable refinement rounds
+- [x] Freeze → final filters, rubric, shortlist
+
+### UX states
+
+- [x] Initial / empty state
+- [x] Loading / thinking indicator
+- [x] Empty results state (with "Loosen Filters")
+- [x] LLM error banner + Retry
+- [x] Simulated 429 failure demo
+- [x] Frozen shortlist view
+- [x] Current filters and rubric always visible
+
+### Repository
+
+- [x] README with setup + API key variable name
+- [x] Decisions section (prioritised / cut / why)
+- [x] `.env.example` (no secrets committed)
+- [x] LLM prompts in `src/prompts/`
+- [x] `src/data/profiles.json` included
+
+### Loom (record before submitting)
+
+- [ ] Full flow: search → rank → refine → freeze (one session)
+- [ ] At least one refinement round with visible filter change
+- [ ] One failure/recovery moment (use Simulate 429 Demo + Retry)
+- [ ] ≤15 minutes total
+
+---
+
+## Tech Stack
+
+- **Next.js 16** (App Router) + **TypeScript** + **Tailwind CSS v4**
+- **Google Gemini** (`@google/generative-ai`, model: `gemini-flash-latest`)
+- **Zod** for response validation
+- **Vercel**-ready (serverless API routes, no external DB)
+
+---
+
+## License
+
+Built for the Flexiple Engineering Hiring assignment.

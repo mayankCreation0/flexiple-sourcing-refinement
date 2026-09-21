@@ -25,12 +25,12 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
     error.includes('rate limit');
 
   return (
-    <div className="w-full max-w-4xl mx-auto my-4 p-4 rounded-2xl bg-rose-950/70 border border-rose-800/80 shadow-2xl backdrop-blur-md animate-fade-in text-slate-200">
+    <div className="w-full my-4 p-4 rounded-2xl bg-rose-950/70 border border-rose-800/80 shadow-2xl backdrop-blur-md animate-fade-in text-[#F5F5F5]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start space-x-3">
           <div className="p-2 rounded-xl bg-rose-900/60 border border-rose-700/60 text-rose-300 shrink-0 mt-0.5">
             {isMissingApiKey ? (
-              <Key className="w-5 h-5 text-amber-400" />
+              <Key className="w-5 h-5 text-[#FFB300]" />
             ) : isRateLimit ? (
               <ShieldAlert className="w-5 h-5 text-rose-400" />
             ) : (
@@ -49,9 +49,9 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
               {error}
             </p>
             {isMissingApiKey && (
-              <div className="pt-2 text-xs text-amber-300/90 font-mono bg-slate-950/60 p-2.5 rounded-lg border border-amber-900/40">
+              <div className="pt-2 text-xs text-amber-300/90 font-mono bg-[#0A0A0A]/60 p-2.5 rounded-lg border border-amber-900/40">
                 To fix: Create <code className="text-amber-200 font-bold">.env.local</code> in the project root and add:{' '}
-                <code className="text-emerald-300 font-bold">GEMINI_API_KEY=your_key_here</code>
+                <code className="text-[#00C853] font-bold">GEMINI_API_KEY=your_key_here</code>
               </div>
             )}
           </div>

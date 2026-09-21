@@ -8,9 +8,10 @@ import {
   ThumbsDown,
   CheckCircle,
   AlertCircle,
-  Sparkles,
+  Check,
 } from 'lucide-react';
 import { ScoredCandidate } from '@/lib/types';
+import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface CandidateCardProps {
   candidate: ScoredCandidate;
@@ -18,6 +19,13 @@ interface CandidateCardProps {
   reaction?: 'yes' | 'no' | null;
   onReaction: (candidateId: string, rating: 'yes' | 'no') => void;
   isFrozen?: boolean;
+}
+
+function shortenExplanation(text: string, maxLen = 150): string {
+  if (text.length <= maxLen) return text;
+  const cut = text.slice(0, maxLen);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 120 ? cut.slice(0, lastSpace) : cut).trim() + '…';
 }
 
 export const CandidateCard: React.FC<CandidateCardProps> = ({
@@ -30,9 +38,9 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
   const { profile, score } = candidate;
 
   const getScoreColor = (fitScore: number) => {
-    if (fitScore >= 80) return 'text-emerald-400 bg-emerald-950/70 border-emerald-800/80';
-    if (fitScore >= 60) return 'text-amber-400 bg-amber-950/70 border-amber-800/80';
-    return 'text-rose-400 bg-rose-950/70 border-rose-800/80';
+    if (fitScore >= 80) return 'text-[#00C853] bg-[#00C853]/10 border-[#00C853]/40';
+    if (fitScore >= 60) return 'text-[#FFB300] bg-[#FFB300]/10 border-[#FFB300]/40';
+    return 'text-[#E53935] bg-[#E53935]/10 border-[#E53935]/40';
   };
 
   const getVerdictLabel = (verdict: string) => {
@@ -41,196 +49,173 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
         return 'Strong Fit';
       case 'potential_match':
         return 'Potential Fit';
-      case 'weak_match':
       default:
         return 'Borderline';
     }
   };
 
+  const evidenceItems = [
+    score.cited_fields?.skills_fit && { label: score.cited_fields.skills_fit, type: 'skill' },
+    score.cited_fields?.experience_fit && { label: score.cited_fields.experience_fit, type: 'exp' },
+    score.cited_fields?.company_fit && { label: score.cited_fields.company_fit, type: 'company' },
+    score.cited_fields?.education_fit && { label: score.cited_fields.education_fit, type: 'edu' },
+    { label: profile.location, type: 'location' },
+  ].filter(Boolean) as { label: string; type: string }[];
+
   return (
     <div
-      className={`relative rounded-2xl border transition-all duration-200 p-5 ${
+      className={`relative rounded-xl border transition-all duration-200 p-4 sm:p-5 ${
         reaction === 'yes'
-          ? 'bg-slate-900/95 border-emerald-600/70 shadow-lg shadow-emerald-950/30 ring-1 ring-emerald-500/30'
+          ? 'bg-[#141414] border-[#00C853]/50 ring-1 ring-[#00C853]/20'
           : reaction === 'no'
-          ? 'bg-slate-900/60 border-rose-900/50 opacity-70'
-          : 'bg-slate-900/90 border-slate-800 hover:border-slate-700 shadow-xl'
+          ? 'bg-[#141414]/80 border-[#E53935]/30 opacity-75'
+          : 'bg-[#141414] border-[#2A2A2A] hover:border-[#404040]'
       }`}
     >
-      {/* CARD HEADER */}
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 text-indigo-400 font-bold text-sm shadow-inner shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4">
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#1E1E1E] border border-[#404040] text-[#FF3333] font-bold text-sm shrink-0">
             #{index + 1}
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h3 className="text-base font-bold text-white tracking-tight">
-                {profile.name}
-              </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base font-bold text-[#F5F5F5]">{profile.name}</h3>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#1E1E1E] text-[#B3B3B3] border border-[#404040]">
                 {profile.current_title}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-400">
-              <span className="flex items-center">
-                <Building2 className="w-3.5 h-3.5 mr-1 text-slate-500" />
-                <strong className="text-slate-300 font-medium mr-1">
-                  {profile.current_company}
-                </strong>
-                <span className="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-400 border border-indigo-900/60">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-[#B3B3B3]">
+              <span className="flex items-center gap-1">
+                <Building2 className="w-3.5 h-3.5 text-[#757575]" />
+                <strong className="text-[#F5F5F5] font-medium">{profile.current_company}</strong>
+                <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-[#FF0000]/10 text-[#FF3333] border border-[#FF0000]/25">
                   {profile.current_company_type}
                 </span>
               </span>
-              <span className="flex items-center">
-                <Clock className="w-3.5 h-3.5 mr-1 text-slate-500" />
-                {profile.years_experience} yrs exp
+              <span className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-[#757575]" />
+                {profile.years_experience} yrs
               </span>
-              <span className="flex items-center">
-                <MapPin className="w-3.5 h-3.5 mr-1 text-slate-500" />
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-[#757575]" />
                 {profile.location}
               </span>
             </div>
           </div>
         </div>
 
-        {/* FIT SCORE PILL */}
         <div
-          className={`px-3 py-1 rounded-xl border flex flex-col items-end shrink-0 ${getScoreColor(
+          className={`px-3 py-1.5 rounded-lg border flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-0 shrink-0 self-stretch sm:self-auto ${getScoreColor(
             score.fit_score
           )}`}
         >
-          <div className="flex items-center space-x-1">
-            <span className="text-base font-extrabold">{score.fit_score}%</span>
-          </div>
-          <span className="text-[10px] font-semibold uppercase tracking-wider">
+          <span className="text-lg font-extrabold leading-none">{score.fit_score}%</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider mt-0.5">
             {getVerdictLabel(score.verdict)}
           </span>
         </div>
       </div>
 
-      {/* WHY THIS PROFILE MATCHED (GROUNDED CITATION EXPLANATION) */}
-      <div className="p-3.5 rounded-xl bg-slate-950/70 border border-indigo-950/60 mb-3 space-y-2">
-        <div className="flex items-center space-x-1.5 text-xs font-semibold text-indigo-300">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Why this profile matches the rubric</span>
+      {/* Why this matches — concise */}
+      <div className="p-4 rounded-lg bg-[#0A0A0A] border border-[#2A2A2A] mb-3">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-semibold text-[#FF3333] uppercase tracking-wide">
+            Why this matches
+          </span>
+          <InfoTooltip text="Short explanation tied to this profile's actual fields — skills, experience, company, and location. Used for rubric-based ranking." />
         </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          {score.explanation}
+        <p className="text-sm text-[#B3B3B3] leading-relaxed line-clamp-3">
+          {shortenExplanation(score.explanation)}
         </p>
 
-        {/* STRUCTURED FIELD CITATIONS */}
-        {score.cited_fields && (
-          <div className="pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-            {score.cited_fields.company_fit && (
-              <div className="flex items-start space-x-1 text-slate-400">
-                <span className="font-semibold text-slate-300">🏢 Company:</span>
-                <span className="truncate">{score.cited_fields.company_fit}</span>
-              </div>
-            )}
-            {score.cited_fields.experience_fit && (
-              <div className="flex items-start space-x-1 text-slate-400">
-                <span className="font-semibold text-slate-300">⏱️ Experience:</span>
-                <span className="truncate">{score.cited_fields.experience_fit}</span>
-              </div>
-            )}
-            {score.cited_fields.skills_fit && (
-              <div className="flex items-start space-x-1 text-slate-400">
-                <span className="font-semibold text-slate-300">🛠️ Skills:</span>
-                <span className="truncate">{score.cited_fields.skills_fit}</span>
-              </div>
-            )}
-            {score.cited_fields.education_fit && (
-              <div className="flex items-start space-x-1 text-slate-400">
-                <span className="font-semibold text-slate-300">🎓 Education:</span>
-                <span className="truncate">{score.cited_fields.education_fit}</span>
-              </div>
-            )}
+        {/* Scannable evidence */}
+        {evidenceItems.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
+            <span className="text-[10px] font-semibold text-[#757575] uppercase tracking-wider block mb-2">
+              Evidence
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {evidenceItems.map((item, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#1E1E1E] border border-[#404040] text-[11px] text-[#B3B3B3]"
+                >
+                  <Check className="w-3 h-3 text-[#00C853] shrink-0" />
+                  {item.label}
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      {/* CANDIDATE SKILLS & PAST COMPANIES */}
+      {/* Skills & meta */}
       <div className="mb-4 space-y-2">
         <div className="flex flex-wrap gap-1.5">
-          {profile.skills.map((skill) => (
+          {profile.skills.slice(0, 6).map((skill) => (
             <span
               key={skill}
-              className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/50"
+              className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#1E1E1E] text-[#B3B3B3] border border-[#404040]/60"
             >
               {skill}
             </span>
           ))}
         </div>
-
-        {profile.past_companies.length > 0 && (
-          <div className="text-[11px] text-slate-400 flex items-center space-x-1 truncate">
-            <span className="text-slate-500 font-medium">Prior:</span>
-            <span>
-              {profile.past_companies
-                .map((p) => `${p.company} (${p.company_type}, ${p.years}y)`)
-                .join(' • ')}
-            </span>
-          </div>
-        )}
-
         {profile.education && (
-          <div className="text-[11px] text-slate-400 flex items-center space-x-1 truncate">
-            <GraduationCap className="w-3 h-3 text-slate-500 shrink-0" />
+          <div className="text-[11px] text-[#757575] flex items-center gap-1">
+            <GraduationCap className="w-3 h-3 shrink-0" />
             <span className="truncate">{profile.education}</span>
           </div>
         )}
       </div>
 
-      {/* FOOTER ACTIONS: REACTION / FEEDBACK */}
-      <div className="flex items-center justify-between pt-3 border-t border-slate-800/80">
-        <div className="flex items-center space-x-2">
-          {reaction === 'yes' ? (
-            <span className="inline-flex items-center space-x-1 text-xs text-emerald-400 font-medium">
-              <CheckCircle className="w-3.5 h-3.5" />
-              <span>Marked as Good Match</span>
-            </span>
-          ) : reaction === 'no' ? (
-            <span className="inline-flex items-center space-x-1 text-xs text-rose-400 font-medium">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>Marked as Not a Fit</span>
-            </span>
-          ) : (
-            <span className="text-xs text-slate-500">
-              Does Candidate #{index + 1} match?
-            </span>
-          )}
-        </div>
-
-        {!isFrozen && (
-          <div className="flex items-center space-x-2">
+      {/* Match / Skip feedback */}
+      {!isFrozen && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-3 border-t border-[#2A2A2A] gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            {reaction === 'yes' ? (
+              <span className="inline-flex items-center gap-1 text-xs text-[#00C853] font-medium">
+                <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                Marked as Good Match
+              </span>
+            ) : reaction === 'no' ? (
+              <span className="inline-flex items-center gap-1 text-xs text-[#E53935] font-medium">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                Marked as Not a Fit
+              </span>
+            ) : (
+              <span className="text-xs text-[#757575]">Does Candidate #{index + 1} match?</span>
+            )}
+            <InfoTooltip text="Rate with Match or Skip, then tap Refine (bottom-right) to update filters and re-rank." />
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => onReaction(profile.id, 'yes')}
-              className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition active:scale-95 cursor-pointer ${
+              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 reaction === 'yes'
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/40'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700'
+                  ? 'bg-[#00C853] text-white'
+                  : 'bg-[#1E1E1E] hover:bg-[#282828] text-[#B3B3B3] border border-[#404040]'
               }`}
             >
               <ThumbsUp className="w-3 h-3" />
-              <span>Match</span>
+              Match
             </button>
             <button
               type="button"
               onClick={() => onReaction(profile.id, 'no')}
-              className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition active:scale-95 cursor-pointer ${
+              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 reaction === 'no'
-                  ? 'bg-rose-600 text-white shadow-md shadow-rose-900/40'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700'
+                  ? 'bg-[#E53935] text-white'
+                  : 'bg-[#1E1E1E] hover:bg-[#282828] text-[#B3B3B3] border border-[#404040]'
               }`}
             >
               <ThumbsDown className="w-3 h-3" />
-              <span>Skip</span>
+              Skip
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { callGeminiJson } from '@/lib/gemini';
+import { callGeminiJson, getGeminiApiKey } from '@/lib/gemini';
 import {
   PARSE_REQUIREMENTS_SYSTEM_PROMPT,
   buildParseRequirementsPrompt,
@@ -15,6 +15,7 @@ import {
 } from '@/lib/validation';
 import { ObjectiveFilters, ScoredCandidate, SubjectiveRubric } from '@/lib/types';
 import { heuristicExtractRequirements, heuristicScoreCandidates } from '@/lib/fallback';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,11 +29,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!getGeminiApiKey()) {
       return NextResponse.json(
         {
           error:
-            'GEMINI_API_KEY is not configured in environment variables. Please add it to .env.local to enable real LLM sourcing.',
+            'GEMINI_API_KEY (or GOOGLE_GENERATIVE_AI_API_KEY) is not configured. Add it to .env.local — see .env.example.',
           code: 'MISSING_API_KEY',
         },
         { status: 500 }
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     // Step 1: LLM extracts objective filters and subjective rubric (with heuristic fallback on 429 quota)
     try {
       const parsePrompt = buildParseRequirementsPrompt(query.trim());
-      const extractionRaw = await callGeminiJson<any>(
+      const extractionRaw = await callGeminiJson(
         PARSE_REQUIREMENTS_SYSTEM_PROMPT,
         parsePrompt
       );
@@ -54,8 +55,8 @@ export async function POST(req: NextRequest) {
       filters = validatedExtraction.filters;
       rubric = validatedExtraction.rubric;
       thinking_summary = validatedExtraction.thinking_summary;
-    } catch (err: any) {
-      console.warn('Gemini extraction unavailable (rate limit/quota), using intelligent heuristic fallback:', err?.message);
+    } catch (err: unknown) {
+      console.warn('Gemini extraction unavailable (rate limit/quota), using intelligent heuristic fallback:', getErrorMessage(err));
       const fallback = heuristicExtractRequirements(query.trim());
       filters = fallback.filters;
       rubric = fallback.rubric;
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
     let scoredCandidates: ScoredCandidate[] = [];
     try {
       const scorePrompt = buildScoreCandidatesPrompt(rubric, filteredCandidates);
-      const scoringRaw = await callGeminiJson<any>(
+      const scoringRaw = await callGeminiJson(
         SCORE_CANDIDATES_SYSTEM_PROMPT,
         scorePrompt
       );
@@ -115,8 +116,8 @@ export async function POST(req: NextRequest) {
         })
         .sort((a, b) => b.score.fit_score - a.score.fit_score)
         .slice(0, 5);
-    } catch (scoringErr: any) {
-      console.warn('Gemini candidate scoring unavailable, using heuristic scoring:', scoringErr?.message);
+    } catch (scoringErr: unknown) {
+      console.warn('Gemini candidate scoring unavailable, using heuristic scoring:', getErrorMessage(scoringErr));
       scoredCandidates = heuristicScoreCandidates(filteredCandidates, query, rubric)
         .sort((a, b) => b.score.fit_score - a.score.fit_score)
         .slice(0, 5);
@@ -130,12 +131,12 @@ export async function POST(req: NextRequest) {
       total_pool_count: allProfiles.length,
       filtered_count: filteredCandidates.length,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in /api/search:', err);
     return NextResponse.json(
       {
         error:
-          err?.message ||
+          getErrorMessage(err) ||
           'An unexpected error occurred while parsing your requirements. Please check your query or retry.',
       },
       { status: 500 }

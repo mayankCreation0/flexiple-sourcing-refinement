@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { callGeminiJson } from '@/lib/gemini';
+import { callGeminiJson, getGeminiApiKey } from '@/lib/gemini';
 import {
   REFINE_SEARCH_SYSTEM_PROMPT,
   buildRefineSearchPrompt,
@@ -21,6 +21,7 @@ import {
   SubjectiveRubric,
 } from '@/lib/types';
 import { heuristicRefine, heuristicScoreCandidates } from '@/lib/fallback';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,11 +40,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!getGeminiApiKey()) {
       return NextResponse.json(
         {
           error:
-            'GEMINI_API_KEY is not configured in environment variables. Please add it to .env.local.',
+            'GEMINI_API_KEY (or GOOGLE_GENERATIVE_AI_API_KEY) is not configured. Add it to .env.local — see .env.example.',
           code: 'MISSING_API_KEY',
         },
         { status: 500 }
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     let updatedFilters: ObjectiveFilters;
     let updatedRubric: SubjectiveRubric;
     let explanation_of_changes: string;
-    let changes_summary: string[];
+    let changes_summary: RefinementRecord['changes_summary'];
 
     try {
       const refinePrompt = buildRefineSearchPrompt(
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
         perProfileFeedback
       );
 
-      const refineRaw = await callGeminiJson<any>(
+      const refineRaw = await callGeminiJson(
         REFINE_SEARCH_SYSTEM_PROMPT,
         refinePrompt
       );
@@ -74,8 +75,8 @@ export async function POST(req: NextRequest) {
       updatedRubric = validatedRefine.rubric;
       explanation_of_changes = validatedRefine.explanation_of_changes;
       changes_summary = validatedRefine.changes_summary;
-    } catch (refineErr: any) {
-      console.warn('Gemini refine call unavailable (rate limit/quota), using heuristic refinement:', refineErr?.message);
+    } catch (refineErr: unknown) {
+      console.warn('Gemini refine call unavailable (rate limit/quota), using heuristic refinement:', getErrorMessage(refineErr));
       const fallback = heuristicRefine(currentFilters, currentRubric, recruiterMessage, round);
       updatedFilters = fallback.filters;
       updatedRubric = fallback.rubric;
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
     let scoredCandidates: ScoredCandidate[] = [];
     try {
       const scorePrompt = buildScoreCandidatesPrompt(updatedRubric, filteredCandidates);
-      const scoringRaw = await callGeminiJson<any>(
+      const scoringRaw = await callGeminiJson(
         SCORE_CANDIDATES_SYSTEM_PROMPT,
         scorePrompt
       );
@@ -126,8 +127,8 @@ export async function POST(req: NextRequest) {
         })
         .sort((a, b) => b.score.fit_score - a.score.fit_score)
         .slice(0, 5);
-    } catch (scoringErr: any) {
-      console.warn('Gemini candidate scoring unavailable, using heuristic scoring:', scoringErr?.message);
+    } catch (scoringErr: unknown) {
+      console.warn('Gemini candidate scoring unavailable, using heuristic scoring:', getErrorMessage(scoringErr));
       scoredCandidates = heuristicScoreCandidates(filteredCandidates, recruiterMessage, updatedRubric)
         .sort((a, b) => b.score.fit_score - a.score.fit_score)
         .slice(0, 5);
@@ -148,12 +149,12 @@ export async function POST(req: NextRequest) {
       candidates: scoredCandidates,
       refinement_record: refinementRecord,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in /api/refine:', err);
     return NextResponse.json(
       {
         error:
-          err?.message ||
+          getErrorMessage(err) ||
           'Failed to refine candidate search based on feedback. Please try again.',
       },
       { status: 500 }

@@ -1,21 +1,32 @@
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
+import { Barlow_Condensed, Inter } from 'next/font/google';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const barlowCondensed = Barlow_Condensed({
   subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const inter = Inter({
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-body',
 });
 
 export const metadata: Metadata = {
   title: 'Flexiple AI Recruiter | Sourcing Refinement Loop',
   description:
-    'Interactive AI sourcing refinement platform: translate free-text hiring requirements into objective filters, subjective fit rubrics, and cited candidate shortlists.',
+    'AI sourcing platform: translate hiring requirements into filters, fit rubrics, and cited candidate shortlists. Powered by Gemini AI.',
+  keywords: ['AI recruiter', 'sourcing', 'talent', 'Flexiple', 'hiring', 'candidate'],
+  authors: [{ name: 'Flexiple' }],
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0A0A0A',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -24,11 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
-    >
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
+    <html lang="en" className={`h-full ${barlowCondensed.variable} ${inter.variable}`}>
+      <body className="min-h-[100dvh] flex flex-col bg-[#0A0A0A] text-[#F5F5F5] font-[family-name:var(--font-body)]">
         {children}
       </body>
     </html>
