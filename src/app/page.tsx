@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { SearchHero } from '@/components/SearchHero';
-import { ThinkingIndicator } from '@/components/ThinkingIndicator';
+import { ThinkingIndicatorCentered, ThinkingIndicatorOverlay } from '@/components/ThinkingIndicator';
 import { FilterRubricDrawer } from '@/components/FilterRubricDrawer';
 import { CandidateCard } from '@/components/CandidateCard';
 import { RefinementChat } from '@/components/RefinementChat';
@@ -172,7 +172,7 @@ export default function Home() {
         currentRound={refinements.length}
       />
 
-      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-6">
+      <main className={`flex-1 w-full px-3 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 ${hasResults && !isFrozen ? 'pb-24' : ''}`}>
         {error && (
           <ErrorBanner
             error={error}
@@ -191,11 +191,12 @@ export default function Home() {
         )}
 
         {isLoading && (
-          <ThinkingIndicator message="Extracting filters and rubric from your requirements…" />
+          <ThinkingIndicatorCentered message="Extracting filters and rubric from your requirements…" />
         )}
 
         {hasResults && !isFrozen && (
-          <div className="space-y-5 animate-fade-in w-full">
+          <>
+            <div className="space-y-5 animate-fade-in w-full">
             {/* Active query bar — full width */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#141414] border border-[#2A2A2A]">
               <div className="flex items-center gap-3 min-w-0">
@@ -240,7 +241,7 @@ export default function Home() {
               {/* Right: candidates + refinement */}
               <div className="xl:col-span-8 space-y-5 min-w-0">
                 {isRefining && (
-                  <ThinkingIndicator
+                  <ThinkingIndicatorOverlay
                     isRefining
                     message="Applying your feedback — updating filters, rubric, and re-ranking…"
                   />
@@ -248,7 +249,7 @@ export default function Home() {
 
                 {/* Candidates */}
                 <section>
-                  <div className="flex items-center justify-between mb-4 gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2 sm:gap-3">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-[#FF3333]" />
                       <h2 className="text-sm font-bold text-[#F5F5F5] uppercase tracking-wider">
@@ -256,7 +257,7 @@ export default function Home() {
                       </h2>
                       <InfoTooltip text="4–5 profiles scored against your rubric with field-level citations. Rate them, then refine below." />
                     </div>
-                    <span className="text-[11px] text-[#757575] hidden sm:block">
+                    <span className="text-[11px] text-[#757575] sm:text-right">
                       Ranked by Rubric Fit & Field Citations
                     </span>
                   </div>
@@ -299,20 +300,18 @@ export default function Home() {
                     </div>
                   )}
                 </section>
-
-                {/* Refinement — sticky on large screens */}
-                <section className="xl:sticky xl:bottom-4 xl:z-10">
-                  <RefinementChat
-                    refinements={refinements}
-                    onRefine={handleRefine}
-                    isLoading={isRefining}
-                    pendingReactions={reactions}
-                    isFrozen={isFrozen}
-                  />
-                </section>
               </div>
             </div>
-          </div>
+            </div>
+
+            <RefinementChat
+              refinements={refinements}
+              onRefine={handleRefine}
+              isLoading={isRefining}
+              pendingReactions={reactions}
+              isFrozen={isFrozen}
+            />
+          </>
         )}
 
         {hasResults && isFrozen && filters && rubric && (

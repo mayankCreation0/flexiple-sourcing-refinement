@@ -32,7 +32,7 @@ export const SearchHero: React.FC<SearchHeroProps> = ({ onSearch, isLoading }) =
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6">
+    <div className="w-full max-w-4xl mx-auto py-10 sm:py-16 px-3 sm:px-6">
       <div className="text-center mb-8 space-y-3">
         <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#141414] border border-[#2A2A2A] text-xs text-[#B3B3B3]">
           <Sparkles className="w-3.5 h-3.5 text-[#FF3333]" />

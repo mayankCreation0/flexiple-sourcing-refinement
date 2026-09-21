@@ -64,7 +64,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
 
   return (
     <div
-      className={`relative rounded-xl border transition-all duration-200 p-5 ${
+      className={`relative rounded-xl border transition-all duration-200 p-4 sm:p-5 ${
         reaction === 'yes'
           ? 'bg-[#141414] border-[#00C853]/50 ring-1 ring-[#00C853]/20'
           : reaction === 'no'
@@ -72,7 +72,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
           : 'bg-[#141414] border-[#2A2A2A] hover:border-[#404040]'
       }`}
     >
-      <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#1E1E1E] border border-[#404040] text-[#FF3333] font-bold text-sm shrink-0">
             #{index + 1}
@@ -105,7 +105,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
         </div>
 
         <div
-          className={`px-3 py-1.5 rounded-lg border flex flex-col items-end shrink-0 ${getScoreColor(
+          className={`px-3 py-1.5 rounded-lg border flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-0 shrink-0 self-stretch sm:self-auto ${getScoreColor(
             score.fit_score
           )}`}
         >
@@ -171,7 +171,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
 
       {/* Match / Skip feedback */}
       {!isFrozen && (
-        <div className="flex items-center justify-between pt-3 border-t border-[#2A2A2A] gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-3 border-t border-[#2A2A2A] gap-3">
           <div className="flex items-center gap-2 min-w-0">
             {reaction === 'yes' ? (
               <span className="inline-flex items-center gap-1 text-xs text-[#00C853] font-medium">
@@ -186,7 +186,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
             ) : (
               <span className="text-xs text-[#757575]">Does Candidate #{index + 1} match?</span>
             )}
-            <InfoTooltip text="Rate candidates with Match or Skip, then use Refine Search below. Your feedback updates filters and rubric, then re-ranks results." />
+            <InfoTooltip text="Rate with Match or Skip, then tap Refine (bottom-right) to update filters and re-rank." />
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button

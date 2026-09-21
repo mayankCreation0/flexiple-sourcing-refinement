@@ -27,7 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           : 'border-[#2A2A2A] bg-[#0A0A0A]/95'
       }`}
     >
-      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="w-full px-3 sm:px-6 lg:px-8 min-h-14 sm:min-h-16 py-2 sm:py-0 flex items-center justify-between gap-2 sm:gap-4">
         <div className="flex items-center space-x-3 min-w-0">
           <div
             className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2 flex-wrap">
-              <span className="font-semibold text-[#F5F5F5] tracking-tight text-base">
+              <span className="font-semibold text-[#F5F5F5] tracking-tight text-sm sm:text-base truncate max-w-[140px] sm:max-w-none">
                 {isFrozen ? 'Search Frozen' : 'Flexiple AI Recruiter'}
               </span>
               <span
@@ -91,10 +91,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onFreezeToggle}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[#00C853] hover:bg-[#00B248] text-white shadow-md shadow-black/20 transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[#00C853] hover:bg-[#00B248] text-white shadow-md shadow-black/20 transition-all active:scale-95 cursor-pointer"
             >
               <Lock className="w-3.5 h-3.5" />
-              <span>Freeze Search</span>
+              <span className="hidden sm:inline">Freeze Search</span>
             </button>
           )}
 
