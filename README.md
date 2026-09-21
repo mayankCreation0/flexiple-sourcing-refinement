@@ -8,7 +8,9 @@ A recruiter enters a free-text hiring requirement. The app uses **Google Gemini*
 
 ## Live Demo
 
-> Add your Vercel URL here after deployment, e.g. `https://flexiple-sourcing-refinement.vercel.app`
+**Deployed app:** [https://flexiple-sourcing-refinement.vercel.app/](https://flexiple-sourcing-refinement.vercel.app/)
+
+> Set `GEMINI_API_KEY` in Vercel project settings → Environment Variables for LLM features on the live deployment.
 
 **Loom walkthrough (≤15 min):** [Insert your Loom link here]
 
