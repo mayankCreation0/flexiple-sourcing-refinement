@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bot, CheckCircle2, Filter, Award, Cpu } from 'lucide-react';
+import { Bot, CheckCircle2, Loader2, Sparkles, Filter, Award } from 'lucide-react';
 
 interface ThinkingIndicatorProps {
   message?: string;
@@ -7,17 +7,17 @@ interface ThinkingIndicatorProps {
 }
 
 const SEARCH_STEPS = [
-  { icon: Bot,    text: 'Extracting objective filters from requirements...' },
-  { icon: Award,  text: 'Synthesizing subjective fit rubric and green flags...' },
-  { icon: Filter, text: 'Scanning 48 candidate profiles against hard constraints...' },
-  { icon: Cpu,    text: 'Scoring candidates with field-level evidence citations...' },
+  { icon: Bot, text: 'Extracting structured objective filters from requirement...' },
+  { icon: Award, text: 'Synthesizing subjective fit rubric & green flags...' },
+  { icon: Filter, text: 'Screening 48 candidate profiles against hard constraints...' },
+  { icon: Sparkles, text: 'Scoring candidates against rubric with field-level citations...' },
 ];
 
 const REFINE_STEPS = [
-  { icon: Bot,    text: 'Analyzing recruiter feedback and candidate reactions...' },
-  { icon: Award,  text: 'Adjusting filters and recalibrating rubric weights...' },
+  { icon: Bot, text: 'Analyzing recruiter feedback and candidate reactions...' },
+  { icon: Award, text: 'Adjusting objective filters and weighting subjective rubric...' },
   { icon: Filter, text: 'Re-filtering talent pool against revised parameters...' },
-  { icon: Cpu,    text: 'Re-scoring top candidates and generating diff explanations...' },
+  { icon: Sparkles, text: 'Re-scoring top candidates and generating diff explanations...' },
 ];
 
 export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
@@ -35,75 +35,22 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   }, [steps.length]);
 
   return (
-    <div
-      className="w-full max-w-xl mx-auto my-10 animate-slide-up"
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid rgba(0,255,255,0.2)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '1.5rem',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 0 40px rgba(0,255,255,0.06)',
-      }}
-    >
-      {/* Top glow line */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0,
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, #00FFFF, transparent)',
-          opacity: 0.5,
-          animation: 'shimmer 2s linear infinite',
-          backgroundSize: '200% 100%',
-        }}
-      />
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-        {/* Tribal mandala spinner */}
-        <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
-          <svg viewBox="0 0 36 36" width="36" height="36" fill="none" aria-hidden="true">
-            <polygon
-              points="18,3 33,10.5 33,25.5 18,33 3,25.5 3,10.5"
-              stroke="#00FFFF"
-              strokeWidth="1"
-              fill="rgba(0,255,255,0.05)"
-              style={{ transformOrigin: '18px 18px', animation: 'tribal-spin 2s linear infinite' }}
-            />
-            <circle cx="18" cy="18" r="5" stroke="#00FFFF" strokeWidth="1" fill="rgba(0,255,255,0.15)" />
-            <circle
-              cx="18" cy="18" r="3"
-              fill="#00FFFF"
-              style={{ animation: 'pulse-glow 1s infinite alternate' }}
-            />
-          </svg>
+    <div className="w-full my-8 p-6 rounded-2xl bg-[#141414]/95 border border-[#404040] shadow-2xl backdrop-blur-xl animate-fade-in">
+      <div className="flex items-center space-x-3 mb-5">
+        <div className="h-9 w-9 rounded-xl bg-[#FF0000]/20 border border-[#FF0000]/30 flex items-center justify-center">
+          <Loader2 className="w-5 h-5 text-[#FF3333] animate-spin" />
         </div>
-
         <div>
-          <h3
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: '#00FFFF',
-              textShadow: '0 0 10px rgba(0,255,255,0.5)',
-            }}
-          >
-            {isRefining ? 'Refinement Loop Active' : 'AI Sourcing Pipeline'}
+          <h3 className="text-sm font-semibold text-white">
+            {isRefining ? 'Refining Sourcing Strategy' : 'AI Sourcing Pipeline Running'}
           </h3>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>
-            {message || 'Orchestrating Gemini LLM calls and profile evaluation...'}
+          <p className="text-xs text-[#B3B3B3]">
+            {message || 'Orchestrating Gemini LLM calls and profile evaluations'}
           </p>
         </div>
       </div>
 
-      {/* Steps */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+      <div className="space-y-3">
         {steps.map((step, index) => {
           const isDone = index < activeStep;
           const isCurrent = index === activeStep;
@@ -112,41 +59,22 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
           return (
             <div
               key={index}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.65rem',
-                transition: 'all 0.3s ease',
-                opacity: isCurrent ? 1 : isDone ? 0.7 : 0.25,
-                transform: isCurrent ? 'translateX(4px)' : 'none',
-              }}
+              className={`flex items-center space-x-3 text-xs sm:text-sm transition-all duration-300 ${
+                isCurrent
+                  ? 'text-white font-medium pl-1'
+                  : isDone
+                  ? 'text-[#B3B3B3]'
+                  : 'text-[#757575]'
+              }`}
             >
               {isDone ? (
-                <CheckCircle2 size={14} color="#29AB87" style={{ flexShrink: 0 }} />
+                <CheckCircle2 className="w-4 h-4 text-[#00C853] shrink-0" />
               ) : isCurrent ? (
-                <div
-                  style={{
-                    width: 14, height: 14,
-                    borderRadius: '50%',
-                    border: '2px solid #00FFFF',
-                    borderTopColor: 'transparent',
-                    flexShrink: 0,
-                    animation: 'tribal-spin 0.7s linear infinite',
-                  }}
-                />
+                <Loader2 className="w-4 h-4 text-[#FF3333] animate-spin shrink-0" />
               ) : (
-                <IconComponent size={14} color="rgba(0,255,255,0.25)" style={{ flexShrink: 0 }} />
+                <IconComponent className="w-4 h-4 text-[#4D4D4D] shrink-0" />
               )}
-              <span
-                style={{
-                  fontFamily: isCurrent ? 'var(--font-mono)' : 'var(--font-body)',
-                  fontSize: '0.72rem',
-                  color: isDone ? '#29AB87' : isCurrent ? '#00FFFF' : 'var(--text-muted)',
-                  letterSpacing: isCurrent ? '0.03em' : 0,
-                }}
-              >
-                {step.text}
-              </span>
+              <span>{step.text}</span>
             </div>
           );
         })}

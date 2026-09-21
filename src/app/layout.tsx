@@ -1,13 +1,29 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { Barlow_Condensed, Inter } from 'next/font/google';
 import './globals.css';
+
+const barlowCondensed = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-body',
+});
 
 export const metadata: Metadata = {
   title: 'Flexiple AI Recruiter | Sourcing Refinement Loop',
   description:
-    'Cyber-tribal AI sourcing platform: translate free-text hiring requirements into objective filters, subjective fit rubrics, and cited candidate shortlists. Powered by Gemini AI.',
+    'AI sourcing platform: translate hiring requirements into filters, fit rubrics, and cited candidate shortlists. Powered by Gemini AI.',
   keywords: ['AI recruiter', 'sourcing', 'talent', 'Flexiple', 'hiring', 'candidate'],
   authors: [{ name: 'Flexiple' }],
-  themeColor: '#000000',
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0A0A0A',
 };
 
 export default function RootLayout({
@@ -16,12 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
-      <body className="min-h-[100dvh] flex flex-col">
+    <html lang="en" className={`h-full ${barlowCondensed.variable} ${inter.variable}`}>
+      <body className="min-h-[100dvh] flex flex-col bg-[#0A0A0A] text-[#F5F5F5] font-[family-name:var(--font-body)]">
         {children}
       </body>
     </html>

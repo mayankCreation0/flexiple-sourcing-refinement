@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { callGeminiJson } from '@/lib/gemini';
+import { callGeminiJson, getGeminiApiKey } from '@/lib/gemini';
 import {
   REFINE_SEARCH_SYSTEM_PROMPT,
   buildRefineSearchPrompt,
@@ -40,11 +40,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!getGeminiApiKey()) {
       return NextResponse.json(
         {
           error:
-            'GEMINI_API_KEY is not configured in environment variables. Please add it to .env.local.',
+            'GEMINI_API_KEY (or GOOGLE_GENERATIVE_AI_API_KEY) is not configured. Add it to .env.local — see .env.example.',
           code: 'MISSING_API_KEY',
         },
         { status: 500 }

@@ -8,9 +8,9 @@ import {
   Unlock,
   Building2,
   Clock,
-  Zap,
 } from 'lucide-react';
 import { ObjectiveFilters, ScoredCandidate, SubjectiveRubric } from '@/lib/types';
+import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface FrozenShortlistProps {
   candidates: ScoredCandidate[];
@@ -19,6 +19,12 @@ interface FrozenShortlistProps {
   onUnfreeze: () => void;
   refinementRounds: number;
 }
+
+const weightLabel: Record<string, string> = {
+  critical: '40%',
+  high: '30%',
+  medium: '20%',
+};
 
 export const FrozenShortlist: React.FC<FrozenShortlistProps> = ({
   candidates,
@@ -32,10 +38,10 @@ export const FrozenShortlist: React.FC<FrozenShortlistProps> = ({
   useEffect(() => {
     try {
       confetti({
-        particleCount: 100,
-        spread: 80,
+        particleCount: 60,
+        spread: 60,
         origin: { y: 0.6 },
-        colors: ['#00FFFF', '#29AB87', '#FF00FF'],
+        colors: ['#FF0000', '#00C853', '#F5F5F5'],
       });
     } catch {
       // safe fallback
@@ -46,14 +52,11 @@ export const FrozenShortlist: React.FC<FrozenShortlistProps> = ({
     const text = candidates
       .map(
         (c, idx) =>
-          `#${idx + 1} ${c.profile.name} - ${c.profile.current_title} @ ${
-            c.profile.current_company
-          } (${c.profile.current_company_type})\n` +
-          `Score: ${c.score.fit_score}% | ${c.profile.years_experience}y YoE | Location: ${c.profile.location}\n` +
-          `Key Citation: ${c.score.explanation}\n`
+          `#${idx + 1} ${c.profile.name} — ${c.score.fit_score}% fit\n` +
+          `${c.profile.current_title} @ ${c.profile.current_company}\n` +
+          `${c.score.explanation}\n`
       )
       .join('\n');
-
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
@@ -67,9 +70,7 @@ export const FrozenShortlist: React.FC<FrozenShortlistProps> = ({
       final_rubric: rubric,
       shortlist: candidates,
     };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-      type: 'application/json',
-    });
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -79,182 +80,182 @@ export const FrozenShortlist: React.FC<FrozenShortlistProps> = ({
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
-      {/* ── Celebratory Hero Banner ── */}
-      <div
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          padding: '2rem',
-          borderRadius: 'var(--radius-xl)',
-          background: 'radial-gradient(ellipse at center, rgba(41,171,135,0.15) 0%, rgba(0,0,0,0.8) 100%)',
-          border: '1px solid rgba(41,171,135,0.4)',
-          boxShadow: '0 0 40px rgba(41,171,135,0.15)',
-        }}
-      >
-        {/* Glow overlay */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute', top: '-50%', left: '-50%', right: '-50%', bottom: '-50%',
-            background: 'conic-gradient(from 0deg, transparent, rgba(41,171,135,0.1), transparent)',
-            animation: 'tribal-spin 20s linear infinite',
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div
-              style={{
-                alignSelf: 'flex-start',
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-pill)',
-                background: 'rgba(41,171,135,0.15)', border: '1px solid #29AB87',
-                fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#29AB87', letterSpacing: '0.1em',
-              }}
-            >
-              <CheckCircle2 size={12} />
-              <span>SEARCH FROZEN & FINALIZED</span>
+    <div className="space-y-6 animate-fade-in w-full">
+      {/* Frozen banner */}
+      <div className="p-6 rounded-xl bg-[#00C853]/5 border border-[#00C853]/40">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00C853]/15 border border-[#00C853]/40 text-[#00C853] text-xs font-bold uppercase tracking-wide mb-2">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Search Frozen
             </div>
-            <h2
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
-                fontWeight: 800,
-                color: '#fff',
-                textShadow: '0 0 20px rgba(41,171,135,0.5)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                lineHeight: 1.1,
-              }}
-            >
-              Final Candidate Shortlist
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: 600 }}>
-              Criteria successfully refined across <strong style={{ color: '#00FFFF' }}>{refinementRounds}</strong> iteration{refinementRounds !== 1 ? 's' : ''}.
-              Top <strong style={{ color: '#00FFFF' }}>{candidates.length}</strong> candidates ready for outreach.
+            <h2 className="text-2xl font-bold text-[#F5F5F5]">Final Candidate Shortlist</h2>
+            <p className="text-sm text-[#B3B3B3] mt-1">
+              {refinementRounds} refinement round{refinementRounds !== 1 ? 's' : ''} ·{' '}
+              {candidates.length} candidates ready for outreach
             </p>
           </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-            <button onClick={handleCopy} className="btn-cyber-ghost" style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'var(--text-primary)' }}>
-              {copied ? <Check size={14} color="#29AB87" /> : <Copy size={14} />}
-              <span>{copied ? 'COPIED!' : 'COPY LIST'}</span>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E1E1E] border border-[#404040] text-[#F5F5F5] hover:bg-[#282828] transition cursor-pointer"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-[#00C853]" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? 'Copied!' : 'Copy List'}
             </button>
-            <button onClick={handleExportJson} className="btn-cyber-solid" style={{ background: '#29AB87', borderColor: '#29AB87', color: '#000', boxShadow: '0 0 20px rgba(41,171,135,0.4)' }}>
-              <Download size={14} />
-              <span>EXPORT JSON</span>
+            <button
+              type="button"
+              onClick={handleExportJson}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#FF0000] hover:bg-[#CC0000] text-white transition cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export JSON
             </button>
-            <button onClick={onUnfreeze} className="btn-cyber-ghost" style={{ borderColor: '#FF4500', color: '#FF4500' }}>
-              <Unlock size={14} />
-              <span>UNFREEZE</span>
+            <button
+              type="button"
+              onClick={onUnfreeze}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E1E1E] border border-[#404040] text-[#B3B3B3] hover:text-[#F5F5F5] transition cursor-pointer"
+            >
+              <Unlock className="w-3.5 h-3.5" />
+              Unfreeze
             </button>
-          </div>
-        </div>
-
-        {/* Metrics */}
-        <div
-          style={{
-            position: 'relative', zIndex: 1,
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem',
-            marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(41,171,135,0.2)',
-          }}
-        >
-          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>Shortlisted</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: '#fff' }}>{candidates.length}</span>
-          </div>
-          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>Top Match</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: '#29AB87' }}>{candidates[0]?.score.fit_score || 0}%</span>
-          </div>
-          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>Refinements</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: '#00FFFF' }}>{refinementRounds}</span>
-          </div>
-          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>YoE Range</span>
-            <span style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: '#fff' }}>{filters.min_years_experience ?? 0}-{filters.max_years_experience ?? 30}y</span>
           </div>
         </div>
       </div>
 
-      {/* ── Candidate List ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {candidates.map((candidate, idx) => (
-          <div
-            key={candidate.profile.id}
-            className="holo-card animate-slide-up"
-            style={{ padding: '1.5rem', animationDelay: `${idx * 100}ms` }}
-          >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div
-                  style={{
-                    width: 36, height: 36, borderRadius: '6px',
-                    background: 'rgba(41,171,135,0.1)', border: '1px solid #29AB87',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 700, color: '#29AB87',
-                  }}
-                >
-                  #{idx + 1}
-                </div>
-                <div>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, color: '#fff' }}>
-                    {candidate.profile.name}
-                  </h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: 4, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{candidate.profile.current_title}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Building2 size={12} color="rgba(0,255,255,0.5)" />
-                      {candidate.profile.current_company}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Clock size={12} color="rgba(0,255,255,0.5)" />
-                      {candidate.profile.years_experience}y
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  padding: '0.4rem 1rem', borderRadius: 'var(--radius-pill)',
-                  background: 'rgba(41,171,135,0.2)', border: '1px solid #29AB87',
-                  fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, color: '#29AB87',
-                }}
-              >
-                {candidate.score.fit_score}% FIT
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: '1rem', padding: '0.85rem', borderRadius: 'var(--radius-sm)',
-                background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.05)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.5rem' }}>
-                <Zap size={12} color="#00FFFF" />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#00FFFF', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  Verified Citation
-                </span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                {candidate.score.explanation}
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '1rem' }}>
-              {candidate.profile.skills.map((s) => (
-                <span key={s} className="pill-cyan" style={{ fontSize: '0.65rem' }}>
-                  {s}
-                </span>
-              ))}
-            </div>
+      {/* Three-column summary: Final Search | Final Rubric | Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* FINAL SEARCH */}
+        <div className="p-5 rounded-xl bg-[#141414] border border-[#2A2A2A]">
+          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#2A2A2A]">
+            <h3 className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">
+              Final Search
+            </h3>
+            <InfoTooltip text="Objective filters applied to the 48-profile talent pool." />
           </div>
-        ))}
+          <dl className="space-y-2 text-sm">
+            <div>
+              <dt className="text-[10px] text-[#757575] uppercase">Experience</dt>
+              <dd className="text-[#F5F5F5] font-medium">
+                {filters.min_years_experience ?? 'Any'} – {filters.max_years_experience ?? 'Any'} years
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[10px] text-[#757575] uppercase">Locations</dt>
+              <dd className="text-[#F5F5F5]">
+                {filters.locations.length ? filters.locations.join(', ') : 'Any'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[10px] text-[#757575] uppercase">Company Types</dt>
+              <dd className="flex flex-wrap gap-1 mt-0.5">
+                {(filters.company_types.length ? filters.company_types : ['any']).map((t) => (
+                  <span key={t} className="px-2 py-0.5 rounded text-[11px] bg-[#1E1E1E] border border-[#404040] capitalize">
+                    {t}
+                  </span>
+                ))}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[10px] text-[#757575] uppercase">Skills</dt>
+              <dd className="flex flex-wrap gap-1 mt-0.5">
+                {filters.skills.map((s) => (
+                  <span key={s} className="px-2 py-0.5 rounded text-[11px] bg-[#FF0000]/10 text-[#FF3333] border border-[#FF0000]/25">
+                    {s}
+                  </span>
+                ))}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        {/* FINAL RUBRIC */}
+        <div className="p-5 rounded-xl bg-[#141414] border border-[#2A2A2A]">
+          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#2A2A2A]">
+            <h3 className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">
+              Final Rubric
+            </h3>
+            <InfoTooltip text="Subjective scoring criteria used to rank filtered candidates." />
+          </div>
+          <p className="text-xs text-[#B3B3B3] mb-3 line-clamp-2">{rubric.role_summary}</p>
+          <ul className="space-y-2">
+            {rubric.core_competencies.map((comp, idx) => (
+              <li key={idx} className="flex items-center justify-between text-xs">
+                <span className="text-[#F5F5F5]">{comp.name}</span>
+                <span className="text-[#FFB300] font-semibold">
+                  {weightLabel[comp.weight] ?? comp.weight}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Summary stats */}
+        <div className="p-5 rounded-xl bg-[#141414] border border-[#2A2A2A] grid grid-cols-2 gap-3 content-start">
+          <div>
+            <span className="text-[10px] text-[#757575] uppercase block">Shortlisted</span>
+            <span className="text-2xl font-bold text-[#F5F5F5]">{candidates.length}</span>
+          </div>
+          <div>
+            <span className="text-[10px] text-[#757575] uppercase block">Top Score</span>
+            <span className="text-2xl font-bold text-[#00C853]">
+              {candidates[0]?.score.fit_score ?? 0}%
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] text-[#757575] uppercase block">Refinements</span>
+            <span className="text-2xl font-bold text-[#FF3333]">{refinementRounds}</span>
+          </div>
+          <div>
+            <span className="text-[10px] text-[#757575] uppercase block">YoE Range</span>
+            <span className="text-lg font-bold text-[#F5F5F5]">
+              {filters.min_years_experience ?? 0}–{filters.max_years_experience ?? 30}y
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* FINAL SHORTLIST */}
+      <div>
+        <h3 className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider mb-4 flex items-center gap-2">
+          Final Shortlist
+          <InfoTooltip text="Ranked by rubric fit score with field-level citations from each profile." />
+        </h3>
+        <div className="space-y-3">
+          {candidates.map((candidate, idx) => (
+            <div
+              key={candidate.profile.id}
+              className="flex items-center gap-4 p-4 rounded-xl bg-[#141414] border border-[#2A2A2A] hover:border-[#404040] transition"
+            >
+              <div className="w-10 h-10 rounded-lg bg-[#00C853]/10 border border-[#00C853]/30 flex items-center justify-center text-[#00C853] font-bold shrink-0">
+                #{idx + 1}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-[#F5F5F5]">{candidate.profile.name}</span>
+                  <span className="text-xs text-[#757575]">{candidate.profile.current_title}</span>
+                </div>
+                <div className="flex items-center gap-3 mt-0.5 text-xs text-[#757575]">
+                  <span className="flex items-center gap-1">
+                    <Building2 className="w-3 h-3" />
+                    {candidate.profile.current_company}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {candidate.profile.years_experience}y
+                  </span>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-xl font-extrabold text-[#00C853]">
+                  {candidate.score.fit_score}%
+                </span>
+                <span className="block text-[10px] text-[#757575] uppercase">Fit</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

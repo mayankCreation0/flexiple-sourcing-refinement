@@ -2,11 +2,15 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 let geminiClient: GoogleGenerativeAI | null = null;
 
+export function getGeminiApiKey(): string | undefined {
+  return process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+}
+
 export function getGeminiClient(): GoogleGenerativeAI {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     throw new Error(
-      'GEMINI_API_KEY is not set in environment variables. Please add GEMINI_API_KEY to your .env.local file.'
+      'GEMINI_API_KEY (or GOOGLE_GENERATIVE_AI_API_KEY) is not set. Add it to .env.local — see .env.example.'
     );
   }
   if (!geminiClient) {

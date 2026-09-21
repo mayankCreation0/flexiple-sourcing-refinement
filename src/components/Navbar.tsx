@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Lock, RotateCcw, Database, ShieldCheck, Zap } from 'lucide-react';
+import { Sparkles, Lock, RotateCcw, Database, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface NavbarProps {
   isFrozen: boolean;
@@ -20,188 +21,91 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header
-      style={{
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(0,255,255,0.15)',
-        boxShadow: '0 1px 0 0 rgba(0,255,255,0.08)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-      }}
+      className={`sticky top-0 z-40 w-full border-b backdrop-blur-md ${
+        isFrozen
+          ? 'border-[#00C853]/40 bg-[#0A0A0A]/98'
+          : 'border-[#2A2A2A] bg-[#0A0A0A]/95'
+      }`}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="flex items-center space-x-3 min-w-0">
           <div
-            className="relative flex items-center justify-center"
-            style={{ width: 36, height: 36 }}
-            aria-hidden="true"
+            className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+              isFrozen
+                ? 'bg-[#00C853]/20 border border-[#00C853]/50'
+                : 'bg-gradient-to-br from-[#FF0000] to-[#CC0000]'
+            }`}
           >
-            <svg viewBox="0 0 36 36" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polygon
-                points="18,3 33,10.5 33,25.5 18,33 3,25.5 3,10.5"
-                stroke="#00FFFF"
-                strokeWidth="1.2"
-                fill="rgba(0,255,255,0.05)"
-                className="animate-pulse-glow"
-              />
-              <polygon
-                points="18,9 27,13.5 27,22.5 18,27 9,22.5 9,13.5"
-                stroke="#00FFFF"
-                strokeWidth="0.7"
-                fill="none"
-                opacity="0.5"
-              />
-              <circle cx="18" cy="18" r="4" fill="#00FFFF" opacity="0.8" />
-            </svg>
-          </div>
-
-          <div>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                color: '#00FFFF',
-                textShadow: '0 0 10px rgba(0,255,255,0.6)',
-              }}
-              className="animate-neon-flicker"
-            >
-              FLEXIPLE
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.55rem',
-                letterSpacing: '0.25em',
-                textTransform: 'uppercase',
-                color: 'rgba(0,255,255,0.5)',
-                display: 'block',
-                marginTop: '-2px',
-              }}
-            >
-              AI SOURCING
-            </span>
-          </div>
-        </div>
-
-        {/* Center status */}
-        <div className="hidden md:flex items-center gap-3">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.35rem 0.85rem',
-              borderRadius: '999px',
-              border: '1px solid rgba(0,255,255,0.15)',
-              background: 'rgba(0,255,255,0.04)',
-            }}
-          >
-            <span
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.6rem',
-                letterSpacing: '0.08em',
-                color: 'rgba(0,255,255,0.7)',
-              }}
-            >
-              <Database size={11} color="#00FFFF" />
-              48 PROFILES
-            </span>
-            <span style={{ width: 1, height: 12, background: 'rgba(0,255,255,0.2)' }} />
-            <span
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.6rem',
-                letterSpacing: '0.08em',
-                color: '#29AB87',
-              }}
-            >
-              <ShieldCheck size={11} color="#29AB87" />
-              GEMINI 2.5
-            </span>
-            {currentRound > 0 && (
-              <>
-                <span style={{ width: 1, height: 12, background: 'rgba(0,255,255,0.2)' }} />
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.6rem',
-                    letterSpacing: '0.1em',
-                    color: '#FF00FF',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Round {currentRound}
-                </span>
-              </>
+            {isFrozen ? (
+              <CheckCircle2 className="w-5 h-5 text-[#00C853]" />
+            ) : (
+              <Sparkles className="w-5 h-5 text-white" />
             )}
           </div>
+          <div className="min-w-0">
+            <div className="flex items-center space-x-2 flex-wrap">
+              <span className="font-semibold text-[#F5F5F5] tracking-tight text-base">
+                {isFrozen ? 'Search Frozen' : 'Flexiple AI Recruiter'}
+              </span>
+              <span
+                className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-full border ${
+                  isFrozen
+                    ? 'bg-[#00C853]/10 text-[#00C853] border-[#00C853]/40'
+                    : 'bg-[#1E1E1E] text-[#FF3333] border-[#404040]'
+                }`}
+              >
+                {isFrozen ? 'Final Shortlist' : 'Sourcing Loop'}
+              </span>
+            </div>
+            <p className="text-xs text-[#B3B3B3] hidden sm:block truncate">
+              {isFrozen
+                ? `Final shortlist · ${candidateCount} candidate${candidateCount !== 1 ? 's' : ''}`
+                : 'Conversational Talent Sourcing & Adaptive Refinement'}
+            </p>
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.35rem 0.85rem',
-              borderRadius: '999px',
-              border: '1px solid rgba(41,171,135,0.4)',
-              background: 'rgba(41,171,135,0.07)',
-            }}
-            className="hidden sm:flex"
-          >
-            <Zap size={11} color="#29AB87" />
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.6rem',
-                letterSpacing: '0.15em',
-                color: '#29AB87',
-              }}
-            >
-              LIVE
-            </span>
-            <span
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: '50%',
-                background: '#29AB87',
-                boxShadow: '0 0 6px #29AB87',
-                animation: 'pulse-glow 1.5s infinite alternate',
-              }}
-            />
-          </div>
+        <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+          {!isFrozen && (
+            <div className="hidden md:flex items-center space-x-4 text-xs text-[#B3B3B3] px-3 py-1.5 rounded-lg bg-[#141414] border border-[#2A2A2A]">
+              <span className="flex items-center text-[#B3B3B3]">
+                <Database className="w-3.5 h-3.5 mr-1 text-[#FF3333]" />
+                48 Profiles Pool
+              </span>
+              <span className="h-3 w-px bg-[#404040]" />
+              <span className="flex items-center text-[#00C853]">
+                <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+                Gemini 2.5 Flash
+              </span>
+              {currentRound > 0 && (
+                <>
+                  <span className="h-3 w-px bg-[#404040]" />
+                  <span className="text-[#FF3333] font-medium">Round {currentRound}</span>
+                </>
+              )}
+              <InfoTooltip text="The app filters 48 local sample profiles, scores them with Gemini against your rubric, and refines based on your feedback." />
+            </div>
+          )}
 
           {candidateCount > 0 && !isFrozen && (
             <button
               type="button"
               onClick={onFreezeToggle}
-              className="btn-cyber-solid"
-              style={{
-                padding: '0.4rem 0.85rem',
-                fontSize: '0.6rem',
-                background: '#29AB87',
-                borderColor: '#29AB87',
-                boxShadow: '0 0 15px rgba(41,171,135,0.35)',
-              }}
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[#00C853] hover:bg-[#00B248] text-white shadow-md shadow-black/20 transition-all active:scale-95 cursor-pointer"
             >
-              <Lock size={11} />
-              FREEZE
+              <Lock className="w-3.5 h-3.5" />
+              <span>Freeze Search</span>
+            </button>
+          )}
+
+          {candidateCount > 0 && isFrozen && (
+            <button
+              type="button"
+              onClick={onFreezeToggle}
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[#1E1E1E] hover:bg-[#282828] text-[#B3B3B3] border border-[#404040] transition cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Unfreeze</span>
             </button>
           )}
 
@@ -209,16 +113,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onResetSearch}
-              className="btn-cyber"
-              style={{ padding: '0.4rem 0.75rem', fontSize: '0.6rem' }}
+              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-[#B3B3B3] hover:text-[#F5F5F5] bg-[#141414] hover:bg-[#1E1E1E] border border-[#2A2A2A] transition cursor-pointer"
               title="Start a new search"
             >
-              <RotateCcw size={11} />
-              <span className="hidden sm:inline">NEW</span>
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">New Search</span>
             </button>
           )}
         </div>
-      </nav>
+      </div>
     </header>
   );
 };

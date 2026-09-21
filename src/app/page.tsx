@@ -9,6 +9,7 @@ import { CandidateCard } from '@/components/CandidateCard';
 import { RefinementChat } from '@/components/RefinementChat';
 import { FrozenShortlist } from '@/components/FrozenShortlist';
 import { ErrorBanner } from '@/components/ErrorBanner';
+import { InfoTooltip } from '@/components/InfoTooltip';
 import {
   FeedbackItem,
   ObjectiveFilters,
@@ -17,7 +18,6 @@ import {
   SubjectiveRubric,
 } from '@/lib/types';
 import { Bug, Sparkles, Users } from 'lucide-react';
-import TribalBackground from '@/components/TribalBackground';
 
 export default function Home() {
   const [query, setQuery] = useState<string>('');
@@ -50,10 +50,8 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: searchQuery }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to analyze requirements.');
-
       setFilters(data.filters);
       setRubric(data.rubric);
       setCandidates(data.candidates || []);
@@ -87,16 +85,16 @@ export default function Home() {
           round: refinements.length + 1,
         }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to refine search.');
-
       setFilters(data.filters);
       setRubric(data.rubric);
       setCandidates(data.candidates || []);
       if (data.refinement_record) {
         setRefinements((prev) => [...prev, data.refinement_record]);
-        setModifiedFilterKeys(data.refinement_record.changes_summary?.filters_modified || ['filters']);
+        const fm = data.refinement_record.changes_summary?.filters_modified || [];
+        const rm = data.refinement_record.changes_summary?.rubric_modified || [];
+        setModifiedFilterKeys([...fm, ...(rm.length ? ['rubric'] : []), ...(fm.length ? ['filters'] : [])]);
       }
       setReactions({});
     } catch (err: unknown) {
@@ -106,7 +104,10 @@ export default function Home() {
     }
   };
 
-  const handleUpdateCriteria = async (updatedFilters: ObjectiveFilters, updatedRubric: SubjectiveRubric) => {
+  const handleUpdateCriteria = async (
+    updatedFilters: ObjectiveFilters,
+    updatedRubric: SubjectiveRubric
+  ) => {
     setFilters(updatedFilters);
     setRubric(updatedRubric);
     setIsRefining(true);
@@ -119,7 +120,6 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filters: updatedFilters, rubric: updatedRubric }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to re-rank candidates.');
       setCandidates(data.candidates || []);
@@ -151,16 +151,19 @@ export default function Home() {
     setIsFrozen(false);
     setReactions({});
     setError(null);
+    setModifiedFilterKeys([]);
   };
 
   const handleSimulateFailure = () => {
-    setError('Rate limit exceeded (429: RESOURCE_EXHAUSTED). Auto-fallback heuristics triggered.');
+    setError(
+      'Rate limit exceeded (429: RESOURCE_EXHAUSTED). Auto-fallback heuristics triggered — retry to continue.'
+    );
   };
 
   const hasResults = filters !== null && rubric !== null;
 
   return (
-    <div style={{ position: 'relative', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen bg-[#0A0A0A] text-[#F5F5F5] flex flex-col">
       <Navbar
         isFrozen={isFrozen}
         onFreezeToggle={() => setIsFrozen(!isFrozen)}
@@ -169,7 +172,7 @@ export default function Home() {
         currentRound={refinements.length}
       />
 
-      <main style={{ flex: 1, width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '1.5rem 1rem', position: 'relative', zIndex: 10 }}>
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-6">
         {error && (
           <ErrorBanner
             error={error}
@@ -183,106 +186,136 @@ export default function Home() {
           />
         )}
 
-        {!hasResults && !isLoading && <SearchHero onSearch={handleInitialSearch} isLoading={isLoading} />}
-        
-        {isLoading && <ThinkingIndicator message="Connecting to neural net... extracting parameters..." />}
+        {!hasResults && !isLoading && (
+          <SearchHero onSearch={handleInitialSearch} isLoading={isLoading} />
+        )}
+
+        {isLoading && (
+          <ThinkingIndicator message="Extracting filters and rubric from your requirements…" />
+        )}
 
         {hasResults && !isFrozen && (
-          <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Top Query Summary Bar */}
-            <div
-              style={{
-                display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem',
-                padding: '1rem 1.25rem', borderRadius: 'var(--radius-lg)',
-                background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,255,0.2)',
-                boxShadow: '0 0 20px rgba(0,255,255,0.05)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ padding: '0.4rem', borderRadius: 'var(--radius-sm)', background: 'rgba(255,0,255,0.1)', border: '1px solid rgba(255,0,255,0.3)', color: '#FF00FF' }}>
-                  <Sparkles size={16} />
+          <div className="space-y-5 animate-fade-in w-full">
+            {/* Active query bar — full width */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#141414] border border-[#2A2A2A]">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 rounded-lg bg-[#FF0000]/10 border border-[#FF0000]/25 shrink-0">
+                  <Sparkles className="w-4 h-4 text-[#FF3333]" />
                 </div>
-                <div>
-                  <span className="section-label">Active Query</span>
-                  <p style={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff', marginTop: 4, fontFamily: 'var(--font-body)' }}>
-                    &ldquo;{query}&rdquo;
-                  </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-[#757575] uppercase tracking-wider">
+                      Active Search Goal
+                    </span>
+                    <InfoTooltip text="Your original free-text query. Filters and rubric were generated from this." />
+                  </div>
+                  <p className="text-sm font-medium text-[#F5F5F5] truncate">&ldquo;{query}&rdquo;</p>
                 </div>
               </div>
-
-              <button onClick={handleSimulateFailure} className="btn-cyber-ghost" style={{ padding: '0.35rem 0.85rem', borderColor: 'rgba(255,69,0,0.3)', color: '#FF4500' }}>
-                <Bug size={12} />
-                <span>Trigger 429 Demo</span>
+              <button
+                type="button"
+                onClick={handleSimulateFailure}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#757575] hover:text-[#FFB300] bg-[#1E1E1E] border border-[#2A2A2A] transition cursor-pointer shrink-0 self-start sm:self-auto"
+              >
+                <Bug className="w-3.5 h-3.5" />
+                Simulate 429 Demo
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gap: '1.5rem', alignItems: 'flex-start' }}>
-              <div className="lg:col-span-4 lg:sticky lg:top-24" style={{ gridColumn: 'span 12' }}>
-                <div style={{ height: 'calc(100vh - 120px)', minHeight: 600 }}>
-                  <FilterRubricDrawer
-                    filters={filters}
-                    rubric={rubric}
-                    onUpdateCriteria={handleUpdateCriteria}
-                    isUpdating={isRefining}
-                    modifiedFilters={modifiedFilterKeys}
-                    isFrozen={isFrozen}
-                  />
-                </div>
+            {/* Full-width workspace grid */}
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 xl:gap-6 items-start">
+              {/* Left: criteria panel */}
+              <div className="xl:col-span-4 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto">
+                <FilterRubricDrawer
+                  filters={filters}
+                  rubric={rubric}
+                  onUpdateCriteria={handleUpdateCriteria}
+                  isUpdating={isRefining}
+                  modifiedFilters={modifiedFilterKeys}
+                  isFrozen={isFrozen}
+                  refinements={refinements}
+                />
               </div>
 
-              <div className="lg:col-span-8" style={{ gridColumn: 'span 12', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {isRefining && <ThinkingIndicator isRefining={true} message="Recalibrating scores with AI feedback..." />}
+              {/* Right: candidates + refinement */}
+              <div className="xl:col-span-8 space-y-5 min-w-0">
+                {isRefining && (
+                  <ThinkingIndicator
+                    isRefining
+                    message="Applying your feedback — updating filters, rubric, and re-ranking…"
+                  />
+                )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Users size={16} color="#00FFFF" />
-                      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Ranked Matches ({candidates.length})
+                {/* Candidates */}
+                <section>
+                  <div className="flex items-center justify-between mb-4 gap-3">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#FF3333]" />
+                      <h2 className="text-sm font-bold text-[#F5F5F5] uppercase tracking-wider">
+                        Top Ranked Candidates ({candidates.length})
                       </h2>
+                      <InfoTooltip text="4–5 profiles scored against your rubric with field-level citations. Rate them, then refine below." />
                     </div>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-                      Field-Level Citations
+                    <span className="text-[11px] text-[#757575] hidden sm:block">
+                      Ranked by Rubric Fit & Field Citations
                     </span>
                   </div>
 
                   {candidates.length > 0 ? (
-                    candidates.map((candidate, index) => (
-                      <CandidateCard
-                        key={candidate.profile.id}
-                        candidate={candidate}
-                        index={index}
-                        reaction={reactions[candidate.profile.id]}
-                        onReaction={handleCandidateReaction}
-                        isFrozen={isFrozen}
-                      />
-                    ))
+                    <div className="space-y-4">
+                      {candidates.map((candidate, index) => (
+                        <CandidateCard
+                          key={candidate.profile.id}
+                          candidate={candidate}
+                          index={index}
+                          reaction={reactions[candidate.profile.id]}
+                          onReaction={handleCandidateReaction}
+                          isFrozen={isFrozen}
+                        />
+                      ))}
+                    </div>
                   ) : (
-                    <div style={{ padding: '3rem 2rem', textAlign: 'center', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius-lg)' }}>
-                      <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>No candidates match all strict parameters.</p>
+                    <div className="p-10 rounded-xl bg-[#141414] border border-[#2A2A2A] text-center">
+                      <p className="text-sm text-[#B3B3B3] mb-4">No profiles match current filters.</p>
                       <button
-                        onClick={() => filters && rubric && handleUpdateCriteria({ ...filters, min_years_experience: null, max_years_experience: null, company_types: [] }, rubric)}
-                        className="btn-cyber-solid"
+                        type="button"
+                        onClick={() =>
+                          filters &&
+                          rubric &&
+                          handleUpdateCriteria(
+                            {
+                              ...filters,
+                              min_years_experience: null,
+                              max_years_experience: null,
+                              company_types: [],
+                            },
+                            rubric
+                          )
+                        }
+                        className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#FF0000] text-white cursor-pointer"
                       >
-                        Loosen Constraints
+                        Loosen Filters
                       </button>
                     </div>
                   )}
-                </div>
+                </section>
 
-                <RefinementChat
-                  refinements={refinements}
-                  onRefine={handleRefine}
-                  isLoading={isRefining}
-                  pendingReactions={reactions}
-                  isFrozen={isFrozen}
-                />
+                {/* Refinement — sticky on large screens */}
+                <section className="xl:sticky xl:bottom-4 xl:z-10">
+                  <RefinementChat
+                    refinements={refinements}
+                    onRefine={handleRefine}
+                    isLoading={isRefining}
+                    pendingReactions={reactions}
+                    isFrozen={isFrozen}
+                  />
+                </section>
               </div>
             </div>
           </div>
         )}
 
-        {hasResults && isFrozen && (
+        {hasResults && isFrozen && filters && rubric && (
           <FrozenShortlist
             candidates={candidates}
             filters={filters}
@@ -292,11 +325,6 @@ export default function Home() {
           />
         )}
       </main>
-
-      {/* Decorative background mandala for the whole page */}
-      <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, opacity: 0.05, pointerEvents: 'none' }}>
-        <TribalBackground size={1000} color="#00FFFF" />
-      </div>
     </div>
   );
 }
