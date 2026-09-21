@@ -12,7 +12,7 @@ A recruiter enters a free-text hiring requirement. The app uses **Google Gemini*
 
 > Set `GEMINI_API_KEY` in Vercel project settings → Environment Variables for LLM features on the live deployment.
 
-**Loom walkthrough (≤15 min):** [Insert your Loom link here]
+**Loom walkthrough (≤15 min):** [https://www.loom.com/share/b3a7bfd0e095412cb12ed2e177b614e1](https://www.loom.com/share/b3a7bfd0e095412cb12ed2e177b614e1)
 
 ---
 
