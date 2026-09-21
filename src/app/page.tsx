@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { SearchHero } from '@/components/SearchHero';
-import { ThinkingIndicatorCentered, ThinkingIndicatorOverlay } from '@/components/ThinkingIndicator';
+import { ThinkingIndicatorCentered, ThinkingIndicatorInline } from '@/components/ThinkingIndicator';
 import { FilterRubricDrawer } from '@/components/FilterRubricDrawer';
 import { CandidateCard } from '@/components/CandidateCard';
 import { RefinementChat } from '@/components/RefinementChat';
@@ -196,7 +196,14 @@ export default function Home() {
 
         {hasResults && !isFrozen && (
           <>
-            <div className="space-y-5 animate-fade-in w-full">
+            {isRefining && (
+              <ThinkingIndicatorInline
+                isRefining
+                message="Applying your feedback — updating filters, rubric, and re-ranking…"
+              />
+            )}
+
+            <div className={`space-y-5 w-full ${isRefining ? 'opacity-40 pointer-events-none' : 'animate-fade-in'}`}>
             {/* Active query bar — full width */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#141414] border border-[#2A2A2A]">
               <div className="flex items-center gap-3 min-w-0">
@@ -238,15 +245,8 @@ export default function Home() {
                 />
               </div>
 
-              {/* Right: candidates + refinement */}
+              {/* Right: candidates */}
               <div className="xl:col-span-8 space-y-5 min-w-0">
-                {isRefining && (
-                  <ThinkingIndicatorOverlay
-                    isRefining
-                    message="Applying your feedback — updating filters, rubric, and re-ranking…"
-                  />
-                )}
-
                 {/* Candidates */}
                 <section>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2 sm:gap-3">

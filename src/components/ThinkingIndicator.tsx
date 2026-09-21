@@ -89,16 +89,16 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   );
 };
 
-/** Centered wrapper for loading states */
+/** Centered wrapper for initial search loading (empty page) */
 export const ThinkingIndicatorCentered: React.FC<ThinkingIndicatorProps> = (props) => (
   <div className="flex justify-center items-center min-h-[40vh] px-4 py-8">
     <ThinkingIndicator key={props.isRefining ? 'refine' : 'search'} {...props} />
   </div>
 );
 
-/** Fixed overlay while refining during an active session */
-export const ThinkingIndicatorOverlay: React.FC<ThinkingIndicatorProps> = (props) => (
-  <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-    <ThinkingIndicator key="refine-overlay" {...props} compact />
+/** Inline loader at top of results — horizontal center, no full-screen overlay */
+export const ThinkingIndicatorInline: React.FC<ThinkingIndicatorProps> = (props) => (
+  <div className="flex justify-center px-4 py-6 mb-2 w-full">
+    <ThinkingIndicator key="refine-inline" {...props} />
   </div>
 );
