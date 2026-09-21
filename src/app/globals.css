@@ -1,26 +1,487 @@
+/* ============================================================
+   CYBER-TRIBAL DESIGN SYSTEM
+   Based on designmd.app/library/cyber-tribal
+   Colors: Electric Cyan #00FFFF | Neon Magenta #FF00FF |
+           Jungle Green #29AB87 | Blacklight Purple #BF00FF |
+           Solar Orange #FF4500 | Deep Indigo #4B0082
+   Fonts:  Orbitron (display) | Space Grotesk (body) | JetBrains Mono (mono)
+   ============================================================ */
+
 @import "tailwindcss";
 
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ── Design Tokens ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette */
+  --cyber-cyan:      #00FFFF;
+  --jungle-green:    #29AB87;
+  --neon-magenta:    #FF00FF;
+  --deep-indigo:     #4B0082;
+  --solar-orange:    #FF4500;
+  --blacklight-purple: #BF00FF;
+
+  /* Backgrounds */
+  --bg-base:         #000000;
+  --bg-surface:      #0a0a0f;
+  --bg-card:         #0d0d18;
+  --bg-elevated:     #111128;
+  --bg-overlay:      rgba(0, 0, 0, 0.85);
+
+  /* Text */
+  --text-primary:    #e8faff;
+  --text-secondary:  rgba(232, 250, 255, 0.65);
+  --text-muted:      rgba(232, 250, 255, 0.35);
+
+  /* Borders */
+  --border-cyan:     rgba(0, 255, 255, 0.25);
+  --border-cyan-strong: rgba(0, 255, 255, 0.55);
+  --border-magenta:  rgba(255, 0, 255, 0.25);
+  --border-subtle:   rgba(255, 255, 255, 0.06);
+
+  /* Glows */
+  --glow-cyan:       0 0 20px rgba(0, 255, 255, 0.4), 0 0 60px rgba(0, 255, 255, 0.15);
+  --glow-cyan-sm:    0 0 8px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.2);
+  --glow-magenta:    0 0 20px rgba(255, 0, 255, 0.4), 0 0 60px rgba(255, 0, 255, 0.15);
+  --glow-green:      0 0 20px rgba(41, 171, 135, 0.5);
+  --glow-orange:     0 0 20px rgba(255, 69, 0, 0.5);
+  --glow-purple:     0 0 20px rgba(191, 0, 255, 0.4);
+
+  /* Typography */
+  --font-display:    'Orbitron', sans-serif;
+  --font-body:       'Space Grotesk', sans-serif;
+  --font-mono:       'JetBrains Mono', monospace;
+
+  /* Timing */
+  --glow-pulse-duration: 2s;
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 540ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Radii */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-pill: 999px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Keyframes ── */
+@keyframes pulse-glow {
+  0%   { opacity: 0.8; filter: brightness(1); }
+  50%  { opacity: 1;   filter: brightness(1.2) drop-shadow(0 0 8px var(--cyber-cyan)); }
+  100% { opacity: 0.8; filter: brightness(1); }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@keyframes pulse-glow-magenta {
+  0%   { box-shadow: 0 0 10px rgba(255,0,255,0.3); }
+  50%  { box-shadow: 0 0 25px rgba(255,0,255,0.7), 0 0 50px rgba(255,0,255,0.3); }
+  100% { box-shadow: 0 0 10px rgba(255,0,255,0.3); }
+}
+
+@keyframes neon-flicker {
+  0%, 95%, 100% { opacity: 1; }
+  96%            { opacity: 0.85; }
+  97%            { opacity: 1; }
+  98%            { opacity: 0.7; }
+  99%            { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes tribal-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes tribal-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes tribal-spin-reverse {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+
+@keyframes score-ring-fill {
+  from { stroke-dashoffset: 283; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes border-glow-pulse {
+  0%   { border-color: rgba(0,255,255,0.2); box-shadow: 0 0 5px rgba(0,255,255,0.1); }
+  50%  { border-color: rgba(0,255,255,0.5); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
+  100% { border-color: rgba(0,255,255,0.2); box-shadow: 0 0 5px rgba(0,255,255,0.1); }
+}
+
+/* ── Base Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── Tribal SVG Background ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='rgba(0,255,255,0.04)' stroke-width='0.5'%3E%3Cpolygon points='60,10 110,35 110,85 60,110 10,85 10,35'/%3E%3Cpolygon points='60,22 98,42 98,78 60,98 22,78 22,42'/%3E%3Cpolygon points='60,34 86,49 86,71 60,86 34,71 34,49'/%3E%3Ccircle cx='60' cy='60' r='30'/%3E%3Ccircle cx='60' cy='60' r='20'/%3E%3Cline x1='60' y1='10' x2='60' y2='110'/%3E%3Cline x1='10' y1='60' x2='110' y2='60'/%3E%3Cline x1='22' y1='22' x2='98' y2='98'/%3E%3Cline x1='98' y1='22' x2='22' y2='98'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  opacity: 1;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── Scanline overlay ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 255, 0.012) 2px,
+    rgba(0, 255, 255, 0.012) 4px
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── Typography ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
+}
+
+/* ── Utility Classes ── */
+
+/* Glowing text */
+.text-glow-cyan {
+  color: var(--cyber-cyan);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 30px rgba(0, 255, 255, 0.4);
+}
+.text-glow-magenta {
+  color: var(--neon-magenta);
+  text-shadow: 0 0 10px rgba(255, 0, 255, 0.8), 0 0 30px rgba(255, 0, 255, 0.4);
+}
+.text-glow-green {
+  color: var(--jungle-green);
+  text-shadow: 0 0 10px rgba(41, 171, 135, 0.8);
+}
+
+/* Cyber card */
+.cyber-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-cyan);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.cyber-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyber-cyan), transparent);
+  opacity: 0.6;
+}
+
+.cyber-card:hover {
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-2px);
+}
+
+/* Holographic glass card */
+.holo-card {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 255, 0.04) 0%,
+    rgba(13, 13, 24, 0.9) 40%,
+    rgba(255, 0, 255, 0.03) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-cyan);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.holo-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(0, 255, 255, 0.03) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Primary CTA button */
+.btn-cyber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--cyber-cyan);
+  border: 1px solid var(--cyber-cyan);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2), inset 0 0 10px rgba(0, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-cyber::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.btn-cyber:hover {
+  background: rgba(0, 255, 255, 0.1);
+  box-shadow: var(--glow-cyan-sm), inset 0 0 20px rgba(0, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.btn-cyber:hover::before { opacity: 1; }
+.btn-cyber:active { transform: translateY(0); }
+
+/* Solid CTA button */
+.btn-cyber-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--cyber-cyan);
+  color: #000000;
+  border: 1px solid var(--cyber-cyan);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-cyber-solid:hover {
+  background: #33ffff;
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-1px);
+}
+
+/* Ghost button (magenta) */
+.btn-cyber-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--neon-magenta);
+  border: 1px solid rgba(255, 0, 255, 0.4);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-cyber-ghost:hover {
+  background: rgba(255, 0, 255, 0.1);
+  border-color: var(--neon-magenta);
+  box-shadow: var(--glow-magenta);
+  transform: translateY(-1px);
+}
+
+/* Cyber input */
+.cyber-input {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-cyan);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.875rem 1rem;
+  width: 100%;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  outline: none;
+}
+
+.cyber-input::placeholder {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+}
+
+.cyber-input:focus {
+  border-color: var(--cyber-cyan);
+  box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.15), var(--glow-cyan-sm);
+}
+
+/* Skill / status pills */
+.pill-cyan {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  background: rgba(0, 255, 255, 0.08);
+  color: var(--cyber-cyan);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  white-space: nowrap;
+}
+
+.pill-magenta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(255, 0, 255, 0.08);
+  color: var(--neon-magenta);
+  border: 1px solid rgba(255, 0, 255, 0.25);
+  white-space: nowrap;
+}
+
+.pill-green {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(41, 171, 135, 0.1);
+  color: var(--jungle-green);
+  border: 1px solid rgba(41, 171, 135, 0.3);
+  white-space: nowrap;
+}
+
+.pill-orange {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(255, 69, 0, 0.1);
+  color: var(--solar-orange);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  white-space: nowrap;
+}
+
+/* Section label */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cyber-cyan);
+  opacity: 0.7;
+}
+
+/* Divider line */
+.cyber-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-cyan-strong), transparent);
+}
+
+/* Animation utilities */
+.animate-pulse-glow     { animation: pulse-glow var(--glow-pulse-duration) infinite alternate; }
+.animate-neon-flicker   { animation: neon-flicker 4s infinite; }
+.animate-slide-up       { animation: slide-up var(--transition-slow) forwards; }
+.animate-float          { animation: float 4s ease-in-out infinite; }
+.animate-tribal-spin    { animation: tribal-spin 20s linear infinite; }
+.animate-tribal-rotate  { animation: tribal-rotate 20s linear infinite; }
+.animate-shimmer        { animation: shimmer 2s linear infinite; }
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: rgba(0, 255, 255, 0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 255, 0.6); }
+
+/* Selection */
+::selection {
+  background: rgba(0, 255, 255, 0.25);
+  color: var(--cyber-cyan);
 }

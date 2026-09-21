@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import {
   Send,
-  MessageSquare,
   Bot,
   User,
-  Sparkles,
-  ArrowRight,
   GitCommit,
   CheckCircle2,
+  Terminal,
 } from 'lucide-react';
-import { FeedbackItem, RefinementRecord } from '@/lib/types';
+import { RefinementRecord } from '@/lib/types';
 
 interface RefinementChatProps {
   refinements: RefinementRecord[];
@@ -34,7 +32,6 @@ export const RefinementChat: React.FC<RefinementChatProps> = ({
   isFrozen = false,
 }) => {
   const [input, setInput] = useState('');
-
   const reactionsCount = Object.keys(pendingReactions).length;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -52,73 +49,125 @@ export const RefinementChat: React.FC<RefinementChatProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md flex flex-col">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
-        <div className="flex items-center space-x-2">
-          <MessageSquare className="w-4 h-4 text-indigo-400" />
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-            Conversational Refinement Loop
+    <div
+      className="cyber-card animate-slide-up"
+      style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column' }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingBottom: '0.75rem',
+          borderBottom: '1px solid var(--border-cyan)',
+          marginBottom: '1rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Terminal size={16} color="#00FFFF" />
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--text-primary)',
+            }}
+          >
+            Refinement Console
           </h2>
         </div>
-        <span className="text-xs text-slate-400">
-          {refinements.length} round{refinements.length !== 1 ? 's' : ''} completed
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.65rem',
+            color: 'var(--cyber-cyan)',
+            opacity: 0.7,
+            letterSpacing: '0.1em',
+          }}
+        >
+          {refinements.length} ITERATION{refinements.length !== 1 ? 'S' : ''}
         </span>
       </div>
 
-      {/* REFINEMENT HISTORY / AUDIT LOG */}
+      {/* ── Refinement History / Audit Log ── */}
       {refinements.length > 0 && (
-        <div className="space-y-4 mb-4 max-h-72 overflow-y-auto pr-1">
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+            marginBottom: '1rem',
+            maxHeight: 280,
+            overflowY: 'auto',
+            paddingRight: '0.25rem',
+          }}
+        >
           {refinements.map((rec) => (
             <div
               key={rec.round}
-              className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-2.5 text-xs"
+              className="holo-card"
+              style={{ padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}
             >
-              <div className="flex items-center justify-between">
-                <span className="flex items-center space-x-1.5 font-bold text-indigo-400">
-                  <GitCommit className="w-3.5 h-3.5" />
-                  <span>Round {rec.round} Refinement</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#00FFFF', fontWeight: 600, fontSize: '0.75rem' }}>
+                  <GitCommit size={14} />
+                  <span>Cycle {rec.round} Sync</span>
                 </span>
-                <span className="text-[10px] text-slate-500">{rec.timestamp}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)' }}>
+                  {rec.timestamp}
+                </span>
               </div>
 
               {/* Recruiter prompt */}
-              <div className="flex items-start space-x-2 text-slate-300">
-                <div className="w-5 h-5 rounded-md bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
-                  <User className="w-3 h-3 text-slate-400" />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.75rem' }}>
+                <div
+                  style={{
+                    width: 20, height: 20, borderRadius: '4px',
+                    background: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-subtle)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}
+                >
+                  <User size={12} color="var(--text-secondary)" />
                 </div>
-                <div className="leading-snug">
-                  <span className="font-semibold text-slate-200">Recruiter: </span>
-                  <span>{rec.recruiter_input || 'Reactions applied to candidates'}</span>
+                <div style={{ lineHeight: 1.5 }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Operator: </span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{rec.recruiter_input || 'Reactions applied'}</span>
                 </div>
               </div>
 
-              {/* AI Explanation of what changed and why */}
-              <div className="flex items-start space-x-2 text-indigo-200 bg-indigo-950/30 p-2.5 rounded-lg border border-indigo-900/40">
-                <div className="w-5 h-5 rounded-md bg-indigo-900/60 flex items-center justify-center shrink-0 mt-0.5">
-                  <Bot className="w-3 h-3 text-indigo-400" />
+              {/* AI Explanation */}
+              <div
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '0.5rem',
+                  background: 'rgba(0,255,255,0.05)', border: '1px solid rgba(0,255,255,0.15)',
+                  borderRadius: 'var(--radius-sm)', padding: '0.5rem', fontSize: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    width: 20, height: 20, borderRadius: '4px',
+                    background: 'rgba(0,255,255,0.1)', border: '1px solid rgba(0,255,255,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}
+                >
+                  <Bot size={12} color="#00FFFF" />
                 </div>
-                <div className="leading-snug space-y-1">
-                  <span className="font-semibold text-indigo-300">AI Adjustment: </span>
-                  <p className="text-slate-300">{rec.explanation_of_changes}</p>
+                <div style={{ lineHeight: 1.5, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div>
+                    <span style={{ fontWeight: 600, color: '#00FFFF' }}>System: </span>
+                    <span style={{ color: 'var(--text-primary)' }}>{rec.explanation_of_changes}</span>
+                  </div>
 
                   {/* Summary badges */}
                   {rec.changes_summary && (
-                    <div className="flex flex-wrap gap-1 pt-1">
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                       {rec.changes_summary.filters_modified?.map((fm, i) => (
-                        <span
-                          key={i}
-                          className="px-1.5 py-0.5 rounded text-[10px] bg-indigo-950 text-indigo-400 border border-indigo-800"
-                        >
-                          Filter: {fm}
-                        </span>
+                        <span key={i} className="pill-cyan">F: {fm}</span>
                       ))}
                       {rec.changes_summary.rubric_modified?.map((rm, i) => (
-                        <span
-                          key={i}
-                          className="px-1.5 py-0.5 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-800"
-                        >
-                          Rubric: {rm}
-                        </span>
+                        <span key={i} className="pill-magenta">R: {rm}</span>
                       ))}
                     </div>
                   )}
@@ -129,35 +178,68 @@ export const RefinementChat: React.FC<RefinementChatProps> = ({
         </div>
       )}
 
-      {/* ACTIVE INPUT / REACTION SECTION */}
+      {/* ── Active Input ── */}
       {!isFrozen ? (
-        <div className="space-y-3">
-          {/* Reaction status notice if buttons clicked */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {/* Reaction status notice */}
           {reactionsCount > 0 && (
-            <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-indigo-950/40 border border-indigo-800/60 text-xs">
-              <span className="flex items-center text-indigo-300 font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
-                {reactionsCount} profile reaction{reactionsCount > 1 ? 's' : ''} queued
+            <div
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)',
+                background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.25)',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: '#00FFFF', fontWeight: 600 }}>
+                <CheckCircle2 size={12} />
+                {reactionsCount} reaction{reactionsCount > 1 ? 's' : ''} queued
               </span>
-              <span className="text-[11px] text-slate-400">
-                Submit with or without additional instructions
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
+                Submit with or without text
               </span>
             </div>
           )}
 
-          {/* Quick Suggestions Chips */}
+          {/* Quick Suggestions */}
           <div>
-            <span className="block text-[11px] text-slate-400 mb-1.5 font-medium">
-              Quick Refinement Prompts:
+            <span
+              style={{
+                display: 'block', marginBottom: '0.4rem',
+                fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em'
+              }}
+            >
+              Quick Override:
             </span>
-            <div className="flex flex-wrap gap-1.5">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
               {QUICK_SUGGESTIONS.map((suggestion, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setInput(suggestion)}
                   disabled={isLoading}
-                  className="px-2.5 py-1 rounded-lg text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition cursor-pointer disabled:opacity-50"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.6rem',
+                    color: 'var(--text-secondary)',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.3rem 0.6rem',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.color = '#00FFFF';
+                      e.currentTarget.style.borderColor = 'rgba(0,255,255,0.3)';
+                      e.currentTarget.style.background = 'rgba(0,255,255,0.08)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                  }}
                 >
                   {suggestion}
                 </button>
@@ -165,29 +247,54 @@ export const RefinementChat: React.FC<RefinementChatProps> = ({
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex gap-2">
+          {/* Input Form */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
+            {/* Scanline background for input */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+                background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,255,0.02) 2px, rgba(0,255,255,0.02) 4px)',
+                borderRadius: 'var(--radius-sm)',
+              }}
+            />
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
-              placeholder='e.g. "1 is too junior, 2 and 4 are right" or "Only startup background"'
-              className="flex-1 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs sm:text-sm focus:outline-none focus:border-indigo-500 disabled:opacity-50"
+              placeholder='> Input refinement params...'
+              className="cyber-input"
+              style={{ flex: 1, position: 'relative', zIndex: 1, fontFamily: 'var(--font-mono)' }}
             />
             <button
               type="submit"
               disabled={(!input.trim() && reactionsCount === 0) || isLoading}
-              className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-900/30 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer active:scale-95"
+              className="btn-cyber-solid"
+              style={{
+                position: 'relative', zIndex: 1, padding: '0 1.25rem',
+                opacity: (!input.trim() && reactionsCount === 0) || isLoading ? 0.5 : 1,
+                cursor: (!input.trim() && reactionsCount === 0) || isLoading ? 'not-allowed' : 'pointer',
+              }}
             >
-              <span>Refine</span>
-              <Send className="w-3.5 h-3.5" />
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                EXECUTE
+                <Send size={12} />
+              </span>
             </button>
           </form>
         </div>
       ) : (
-        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-center text-xs text-slate-400">
-          This sourcing search has been frozen. Unfreeze from the header to refine further.
+        <div
+          style={{
+            padding: '0.75rem', borderRadius: 'var(--radius-sm)',
+            background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)',
+            textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)',
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          [ SYSTEM FROZEN ] UNLOCK FROM HEADER TO RESUME REFINEMENT
         </div>
       )}
     </div>

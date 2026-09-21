@@ -6,7 +6,6 @@ import {
   Plus,
   X,
   RefreshCw,
-  Sparkles,
   Sliders,
   ChevronDown,
   ChevronUp,
@@ -24,7 +23,7 @@ interface FilterRubricDrawerProps {
 
 const ALL_COMPANY_TYPES: CompanyType[] = ['startup', 'scaleup', 'enterprise', 'agency'];
 
-export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
+const FilterRubricDrawerInner: React.FC<FilterRubricDrawerProps> = ({
   filters: initialFilters,
   rubric: initialRubric,
   onUpdateCriteria,
@@ -38,13 +37,6 @@ export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
   const [newSkill, setNewSkill] = useState('');
   const [newLocation, setNewLocation] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // Sync with prop updates from refinements
-  React.useEffect(() => {
-    setFilters(initialFilters);
-    setRubric(initialRubric);
-    setIsDirty(false);
-  }, [initialFilters, initialRubric]);
 
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,173 +95,173 @@ export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
   const isFilterModified = (key: string) => modifiedFilters.includes(key);
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md flex flex-col h-full">
-      <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-        <div className="flex items-center space-x-2">
-          <Sliders className="w-4 h-4 text-indigo-400" />
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-            Sourcing Strategy
+    <div
+      className="cyber-card"
+      style={{
+        padding: '1.25rem',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        maxHeight: '100%',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingBottom: '0.75rem',
+          borderBottom: '1px solid var(--border-cyan)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Sliders size={16} color="#FF00FF" />
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--text-primary)',
+            }}
+          >
+            Strategy Matrix
           </h2>
         </div>
-        <div className="flex items-center space-x-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {isDirty && !isFrozen && (
             <button
               onClick={handleApplyChanges}
               disabled={isUpdating}
-              className="flex items-center space-x-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-900/30 transition active:scale-95 cursor-pointer disabled:opacity-50"
+              className="btn-cyber-solid"
+              style={{ padding: '0.3rem 0.75rem', fontSize: '0.65rem', background: '#FF00FF', borderColor: '#FF00FF' }}
             >
-              <RefreshCw className={`w-3 h-3 ${isUpdating ? 'animate-spin' : ''}`} />
-              <span>Apply & Re-rank</span>
+              <RefreshCw size={11} style={{ animation: isUpdating ? 'tribal-spin 1s linear infinite' : 'none' }} />
+              SYNC
             </button>
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition lg:hidden"
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            className="lg:hidden"
           >
-            {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+            {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
           </button>
         </div>
       </div>
 
-      <div className={`space-y-6 pt-4 overflow-y-auto pr-1 ${isCollapsed ? 'hidden lg:block' : 'block'}`}>
-        {/* OBJECTIVE FILTERS SECTION */}
-        <div>
-          <div className="flex items-center space-x-2 mb-3">
-            <Filter className="w-3.5 h-3.5 text-blue-400" />
-            <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Objective Filters
-            </h3>
-            {isFilterModified('filters') && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-950 text-indigo-400 border border-indigo-800">
-                Updated
-              </span>
-            )}
+      <div
+        style={{
+          display: isCollapsed ? 'none' : 'block',
+          paddingTop: '1rem',
+          overflowY: 'auto',
+          flex: 1,
+        }}
+        className="lg:block"
+      >
+        {/* ── OBJECTIVE FILTERS ── */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <Filter size={14} color="#00FFFF" />
+            <h3 className="section-label" style={{ margin: 0, fontSize: '0.7rem' }}>Parameters</h3>
+            {isFilterModified('filters') && <span className="pill-cyan" style={{ fontSize: '0.5rem', padding: '0.1rem 0.4rem' }}>MODIFIED</span>}
           </div>
 
-          <div className="space-y-4 text-xs">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {/* Skills */}
             <div>
-              <label className="block text-slate-400 font-medium mb-1.5">
-                Required / Prioritized Skills
+              <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>
+                Required Skills
               </label>
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: 6 }}>
                 {filters.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-slate-800/90 text-slate-200 border border-slate-700/60"
-                  >
-                    <span>{skill}</span>
+                  <span key={skill} className="pill-cyan" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {skill}
                     {!isFrozen && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSkill(skill)}
-                        className="hover:text-red-400 transition"
-                      >
-                        <X className="w-3 h-3" />
+                      <button onClick={() => handleRemoveSkill(skill)} style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
+                        <X size={10} />
                       </button>
                     )}
                   </span>
                 ))}
               </div>
               {!isFrozen && (
-                <form onSubmit={handleAddSkill} className="flex gap-1.5">
+                <form onSubmit={handleAddSkill} style={{ display: 'flex', gap: '0.4rem' }}>
                   <input
                     type="text"
                     value={newSkill}
                     onChange={(e) => setNewSkill(e.target.value)}
-                    placeholder="Add skill (e.g. AWS RDS)..."
-                    className="flex-1 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                    placeholder="Add skill..."
+                    className="cyber-input"
+                    style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem' }}
                   />
-                  <button
-                    type="submit"
-                    className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
+                  <button type="submit" className="btn-cyber" style={{ padding: '0 0.75rem', minWidth: 'auto' }}>
+                    <Plus size={14} />
                   </button>
                 </form>
               )}
             </div>
 
-            {/* Years of Experience */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Experience */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
-                <label className="block text-slate-400 font-medium mb-1">
-                  Min Experience (Years)
-                </label>
+                <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>Min YoE</label>
                 <input
-                  type="number"
-                  min="0"
-                  max="20"
-                  disabled={isFrozen}
+                  type="number" min="0" max="20" disabled={isFrozen}
                   value={filters.min_years_experience ?? ''}
                   onChange={(e) => {
                     const val = e.target.value === '' ? null : Number(e.target.value);
                     setFilters({ ...filters, min_years_experience: val });
                     setIsDirty(true);
                   }}
-                  className="w-full px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500 disabled:opacity-50"
-                  placeholder="e.g. 4"
+                  className="cyber-input" style={{ padding: '0.5rem', fontSize: '0.75rem' }}
                 />
               </div>
               <div>
-                <label className="block text-slate-400 font-medium mb-1">
-                  Max Experience (Years)
-                </label>
+                <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>Max YoE</label>
                 <input
-                  type="number"
-                  min="0"
-                  max="30"
-                  disabled={isFrozen}
+                  type="number" min="0" max="30" disabled={isFrozen}
                   value={filters.max_years_experience ?? ''}
                   onChange={(e) => {
                     const val = e.target.value === '' ? null : Number(e.target.value);
                     setFilters({ ...filters, max_years_experience: val });
                     setIsDirty(true);
                   }}
-                  className="w-full px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500 disabled:opacity-50"
-                  placeholder="e.g. 7"
+                  className="cyber-input" style={{ padding: '0.5rem', fontSize: '0.75rem' }}
                 />
               </div>
             </div>
 
             {/* Locations */}
             <div>
-              <label className="block text-slate-400 font-medium mb-1.5">
-                Target Locations
+              <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>
+                Locations
               </label>
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: 6 }}>
                 {filters.locations.map((loc) => (
-                  <span
-                    key={loc}
-                    className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-slate-800/90 text-slate-200 border border-slate-700/60"
-                  >
-                    <span>{loc}</span>
+                  <span key={loc} className="pill-cyan" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {loc}
                     {!isFrozen && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveLocation(loc)}
-                        className="hover:text-red-400 transition"
-                      >
-                        <X className="w-3 h-3" />
+                      <button onClick={() => handleRemoveLocation(loc)} style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
+                        <X size={10} />
                       </button>
                     )}
                   </span>
                 ))}
               </div>
               {!isFrozen && (
-                <form onSubmit={handleAddLocation} className="flex gap-1.5">
+                <form onSubmit={handleAddLocation} style={{ display: 'flex', gap: '0.4rem' }}>
                   <input
                     type="text"
                     value={newLocation}
                     onChange={(e) => setNewLocation(e.target.value)}
-                    placeholder="Add location (e.g. Bangalore)..."
-                    className="flex-1 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                    placeholder="Add location..."
+                    className="cyber-input"
+                    style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem' }}
                   />
-                  <button
-                    type="submit"
-                    className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
+                  <button type="submit" className="btn-cyber" style={{ padding: '0 0.75rem', minWidth: 'auto' }}>
+                    <Plus size={14} />
                   </button>
                 </form>
               )}
@@ -277,10 +269,10 @@ export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
 
             {/* Company Types */}
             <div>
-              <label className="block text-slate-400 font-medium mb-1.5">
-                Target Company Backgrounds
+              <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>
+                Background
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                 {ALL_COMPANY_TYPES.map((type) => {
                   const checked = filters.company_types.includes(type);
                   return (
@@ -289,22 +281,20 @@ export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
                       type="button"
                       disabled={isFrozen}
                       onClick={() => handleToggleCompanyType(type)}
-                      className={`flex items-center space-x-2 px-2.5 py-1.5 rounded-lg border text-left capitalize transition cursor-pointer ${
-                        checked
-                          ? 'bg-indigo-950/60 border-indigo-700 text-indigo-200'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                      }`}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem',
+                        background: checked ? 'rgba(0,255,255,0.1)' : 'rgba(0,0,0,0.5)',
+                        border: `1px solid ${checked ? '#00FFFF' : 'rgba(255,255,255,0.1)'}`,
+                        borderRadius: 'var(--radius-sm)', cursor: isFrozen ? 'default' : 'pointer',
+                        color: checked ? '#00FFFF' : 'var(--text-secondary)',
+                        fontFamily: 'var(--font-mono)', fontSize: '0.65rem', textTransform: 'uppercase',
+                        textAlign: 'left',
+                      }}
                     >
-                      <div
-                        className={`w-3.5 h-3.5 rounded flex items-center justify-center border ${
-                          checked
-                            ? 'bg-indigo-600 border-indigo-500 text-white'
-                            : 'border-slate-700'
-                        }`}
-                      >
-                        {checked && <Check className="w-2.5 h-2.5" />}
+                      <div style={{ width: 12, height: 12, border: `1px solid ${checked ? '#00FFFF' : 'var(--text-muted)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {checked && <Check size={10} color="#00FFFF" />}
                       </div>
-                      <span className="text-xs">{type}</span>
+                      {type}
                     </button>
                   );
                 })}
@@ -313,64 +303,63 @@ export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
           </div>
         </div>
 
-        {/* SUBJECTIVE RUBRIC SECTION */}
-        <div className="pt-4 border-t border-slate-800">
-          <div className="flex items-center space-x-2 mb-3">
-            <Award className="w-3.5 h-3.5 text-amber-400" />
-            <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Subjective Fit Rubric
-            </h3>
-            {isFilterModified('rubric') && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800">
-                Refined
-              </span>
-            )}
+        {/* ── SUBJECTIVE RUBRIC ── */}
+        <div style={{ paddingTop: '1.25rem', borderTop: '1px solid var(--border-cyan)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <Award size={14} color="#FF00FF" />
+            <h3 className="section-label" style={{ margin: 0, fontSize: '0.7rem', color: '#FF00FF' }}>Evaluation Rubric</h3>
+            {isFilterModified('rubric') && <span className="pill-magenta" style={{ fontSize: '0.5rem', padding: '0.1rem 0.4rem' }}>RECALIBRATED</span>}
           </div>
 
-          <div className="space-y-4 text-xs">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {/* Role Summary */}
             <div>
-              <label className="block text-slate-400 font-medium mb-1">
-                Role Mission / Essence
+              <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>
+                Role Essence
               </label>
               <textarea
-                rows={2}
+                rows={3}
                 disabled={isFrozen}
                 value={rubric.role_summary}
                 onChange={(e) => {
                   setRubric({ ...rubric, role_summary: e.target.value });
                   setIsDirty(true);
                 }}
-                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500 disabled:opacity-75 resize-none"
+                className="cyber-input"
+                style={{ padding: '0.75rem', fontSize: '0.75rem' }}
               />
             </div>
 
             {/* Core Competencies */}
             <div>
-              <label className="block text-slate-400 font-medium mb-1.5">
-                Core Competencies & Weighting
+              <label style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>
+                Core Competencies
               </label>
-              <div className="space-y-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {rubric.core_competencies.map((comp, idx) => (
                   <div
                     key={idx}
-                    className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 space-y-1"
+                    style={{
+                      background: 'rgba(255,0,255,0.03)',
+                      border: '1px solid rgba(255,0,255,0.15)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '0.75rem',
+                    }}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-200">{comp.name}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>{comp.name}</span>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider ${
-                          comp.weight === 'critical'
-                            ? 'bg-rose-950 text-rose-400 border border-rose-800/60'
-                            : comp.weight === 'high'
-                            ? 'bg-indigo-950 text-indigo-400 border border-indigo-800/60'
-                            : 'bg-slate-800 text-slate-400'
-                        }`}
+                        style={{
+                          fontFamily: 'var(--font-mono)', fontSize: '0.55rem', padding: '0.1rem 0.4rem', borderRadius: 2,
+                          background: comp.weight === 'critical' ? 'rgba(255,69,0,0.1)' : comp.weight === 'high' ? 'rgba(0,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                          color: comp.weight === 'critical' ? '#FF4500' : comp.weight === 'high' ? '#00FFFF' : 'var(--text-secondary)',
+                          border: `1px solid ${comp.weight === 'critical' ? '#FF4500' : comp.weight === 'high' ? '#00FFFF' : 'var(--text-muted)'}`,
+                        }}
                       >
-                        {comp.weight}
+                        {comp.weight.toUpperCase()}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 leading-snug">
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
                       {comp.description}
                     </p>
                   </div>
@@ -381,12 +370,12 @@ export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
             {/* Positive Signals */}
             {rubric.positive_signals.length > 0 && (
               <div>
-                <label className="block text-emerald-400 font-medium mb-1">
-                  ✓ Positive Signals (Green Flags)
+                <label style={{ display: 'block', fontSize: '0.65rem', color: '#29AB87', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  [+] Green Flags
                 </label>
-                <ul className="space-y-1 pl-3 text-[11px] text-slate-400 list-disc">
+                <ul style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.7rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {rubric.positive_signals.map((sig, idx) => (
-                    <li key={idx} className="leading-snug">{sig}</li>
+                    <li key={idx}>{sig}</li>
                   ))}
                 </ul>
               </div>
@@ -395,12 +384,12 @@ export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
             {/* Negative Signals */}
             {rubric.negative_signals.length > 0 && (
               <div>
-                <label className="block text-rose-400 font-medium mb-1">
-                  ✕ Negative Signals (Anti-Patterns)
+                <label style={{ display: 'block', fontSize: '0.65rem', color: '#FF4500', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  [-] Anti-Patterns
                 </label>
-                <ul className="space-y-1 pl-3 text-[11px] text-slate-400 list-disc">
+                <ul style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.7rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {rubric.negative_signals.map((sig, idx) => (
-                    <li key={idx} className="leading-snug">{sig}</li>
+                    <li key={idx}>{sig}</li>
                   ))}
                 </ul>
               </div>
@@ -410,4 +399,9 @@ export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = ({
       </div>
     </div>
   );
+};
+
+export const FilterRubricDrawer: React.FC<FilterRubricDrawerProps> = (props) => {
+  const syncKey = `${JSON.stringify(props.filters)}::${JSON.stringify(props.rubric)}`;
+  return <FilterRubricDrawerInner key={syncKey} {...props} />;
 };

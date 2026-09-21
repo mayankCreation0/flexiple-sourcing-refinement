@@ -7,9 +7,8 @@ import {
   Check,
   Unlock,
   Building2,
-  GraduationCap,
   Clock,
-  Sparkles,
+  Zap,
 } from 'lucide-react';
 import { ObjectiveFilters, ScoredCandidate, SubjectiveRubric } from '@/lib/types';
 
@@ -31,15 +30,15 @@ export const FrozenShortlist: React.FC<FrozenShortlistProps> = ({
   const [copied, setCopied] = React.useState(false);
 
   useEffect(() => {
-    // Launch celebratory confetti burst
     try {
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 100,
+        spread: 80,
         origin: { y: 0.6 },
+        colors: ['#00FFFF', '#29AB87', '#FF00FF'],
       });
     } catch {
-      // safe fallback if canvas not supported
+      // safe fallback
     }
   }, []);
 
@@ -80,140 +79,176 @@ export const FrozenShortlist: React.FC<FrozenShortlistProps> = ({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* CELEBRATORY FROZEN HERO BANNER */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-indigo-950/80 border border-emerald-500/40 shadow-2xl backdrop-blur-xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-900/50 border border-emerald-600/50 text-emerald-300 text-xs font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Search Frozen & Finalized</span>
+    <div className="space-y-6 animate-slide-up">
+      {/* ── Celebratory Hero Banner ── */}
+      <div
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          padding: '2rem',
+          borderRadius: 'var(--radius-xl)',
+          background: 'radial-gradient(ellipse at center, rgba(41,171,135,0.15) 0%, rgba(0,0,0,0.8) 100%)',
+          border: '1px solid rgba(41,171,135,0.4)',
+          boxShadow: '0 0 40px rgba(41,171,135,0.15)',
+        }}
+      >
+        {/* Glow overlay */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute', top: '-50%', left: '-50%', right: '-50%', bottom: '-50%',
+            background: 'conic-gradient(from 0deg, transparent, rgba(41,171,135,0.1), transparent)',
+            animation: 'tribal-spin 20s linear infinite',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div
+              style={{
+                alignSelf: 'flex-start',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-pill)',
+                background: 'rgba(41,171,135,0.15)', border: '1px solid #29AB87',
+                fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#29AB87', letterSpacing: '0.1em',
+              }}
+            >
+              <CheckCircle2 size={12} />
+              <span>SEARCH FROZEN & FINALIZED</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h2
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
+                fontWeight: 800,
+                color: '#fff',
+                textShadow: '0 0 20px rgba(41,171,135,0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                lineHeight: 1.1,
+              }}
+            >
               Final Candidate Shortlist
             </h2>
-            <p className="text-sm text-slate-300">
-              Criteria successfully refined across {refinementRounds} iteration{refinementRounds !== 1 ? 's' : ''}.
-              Top {candidates.length} candidates ready for recruiter outreach.
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: 600 }}>
+              Criteria successfully refined across <strong style={{ color: '#00FFFF' }}>{refinementRounds}</strong> iteration{refinementRounds !== 1 ? 's' : ''}.
+              Top <strong style={{ color: '#00FFFF' }}>{candidates.length}</strong> candidates ready for outreach.
             </p>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleCopy}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition cursor-pointer active:scale-95"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy List</span>
-                </>
-              )}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <button onClick={handleCopy} className="btn-cyber-ghost" style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'var(--text-primary)' }}>
+              {copied ? <Check size={14} color="#29AB87" /> : <Copy size={14} />}
+              <span>{copied ? 'COPIED!' : 'COPY LIST'}</span>
             </button>
-
-            <button
-              onClick={handleExportJson}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 transition cursor-pointer active:scale-95"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export JSON</span>
+            <button onClick={handleExportJson} className="btn-cyber-solid" style={{ background: '#29AB87', borderColor: '#29AB87', color: '#000', boxShadow: '0 0 20px rgba(41,171,135,0.4)' }}>
+              <Download size={14} />
+              <span>EXPORT JSON</span>
             </button>
-
-            <button
-              onClick={onUnfreeze}
-              className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition cursor-pointer"
-            >
-              <Unlock className="w-3.5 h-3.5" />
-              <span>Unfreeze</span>
+            <button onClick={onUnfreeze} className="btn-cyber-ghost" style={{ borderColor: '#FF4500', color: '#FF4500' }}>
+              <Unlock size={14} />
+              <span>UNFREEZE</span>
             </button>
           </div>
         </div>
 
-        {/* METRICS ROW */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-800/80 text-xs">
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60">
-            <span className="text-slate-500 block mb-1">Shortlisted</span>
-            <span className="text-xl font-bold text-white">{candidates.length} Profiles</span>
+        {/* Metrics */}
+        <div
+          style={{
+            position: 'relative', zIndex: 1,
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem',
+            marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(41,171,135,0.2)',
+          }}
+        >
+          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>Shortlisted</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: '#fff' }}>{candidates.length}</span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60">
-            <span className="text-slate-500 block mb-1">Top Match Score</span>
-            <span className="text-xl font-bold text-emerald-400">
-              {candidates[0]?.score.fit_score || 0}%
-            </span>
+          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>Top Match</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: '#29AB87' }}>{candidates[0]?.score.fit_score || 0}%</span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60">
-            <span className="text-slate-500 block mb-1">Refinement Turns</span>
-            <span className="text-xl font-bold text-indigo-400">{refinementRounds}</span>
+          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>Refinements</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: '#00FFFF' }}>{refinementRounds}</span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60">
-            <span className="text-slate-500 block mb-1">Target YoE Range</span>
-            <span className="text-xl font-bold text-white">
-              {filters.min_years_experience ?? 0} - {filters.max_years_experience ?? 30} yrs
-            </span>
+          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>YoE Range</span>
+            <span style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: '#fff' }}>{filters.min_years_experience ?? 0}-{filters.max_years_experience ?? 30}y</span>
           </div>
         </div>
       </div>
 
-      {/* FINAL CANDIDATE LIST */}
-      <div className="space-y-4">
+      {/* ── Candidate List ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {candidates.map((candidate, idx) => (
           <div
             key={candidate.profile.id}
-            className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-3"
+            className="holo-card animate-slide-up"
+            style={{ padding: '1.5rem', animationDelay: `${idx * 100}ms` }}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-xl bg-emerald-950 border border-emerald-800 text-emerald-400 font-extrabold flex items-center justify-center text-sm">
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div
+                  style={{
+                    width: 36, height: 36, borderRadius: '6px',
+                    background: 'rgba(41,171,135,0.1)', border: '1px solid #29AB87',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 700, color: '#29AB87',
+                  }}
+                >
                   #{idx + 1}
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, color: '#fff' }}>
                     {candidate.profile.name}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-slate-400">
-                    <span className="text-slate-300 font-medium">
-                      {candidate.profile.current_title}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: 4, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{candidate.profile.current_title}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Building2 size={12} color="rgba(0,255,255,0.5)" />
+                      {candidate.profile.current_company}
                     </span>
-                    <span>•</span>
-                    <span className="flex items-center">
-                      <Building2 className="w-3.5 h-3.5 mr-1 text-slate-500" />
-                      {candidate.profile.current_company} ({candidate.profile.current_company_type})
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center">
-                      <Clock className="w-3.5 h-3.5 mr-1 text-slate-500" />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Clock size={12} color="rgba(0,255,255,0.5)" />
                       {candidate.profile.years_experience}y
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="px-3 py-1 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 font-bold text-sm">
-                {candidate.score.fit_score}% Fit
+              <div
+                style={{
+                  padding: '0.4rem 1rem', borderRadius: 'var(--radius-pill)',
+                  background: 'rgba(41,171,135,0.2)', border: '1px solid #29AB87',
+                  fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, color: '#29AB87',
+                }}
+              >
+                {candidate.score.fit_score}% FIT
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs space-y-1.5">
-              <div className="flex items-center space-x-1.5 text-indigo-400 font-semibold text-[11px]">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Verified Match Explanation</span>
+            <div
+              style={{
+                marginTop: '1rem', padding: '0.85rem', borderRadius: 'var(--radius-sm)',
+                background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.05)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.5rem' }}>
+                <Zap size={12} color="#00FFFF" />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#00FFFF', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Verified Citation
+                </span>
               </div>
-              <p className="text-slate-300 leading-relaxed">
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                 {candidate.score.explanation}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-1.5">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '1rem' }}>
               {candidate.profile.skills.map((s) => (
-                <span
-                  key={s}
-                  className="px-2 py-0.5 rounded-md text-[11px] bg-slate-800 text-slate-300 border border-slate-700/60"
-                >
+                <span key={s} className="pill-cyan" style={{ fontSize: '0.65rem' }}>
                   {s}
                 </span>
               ))}

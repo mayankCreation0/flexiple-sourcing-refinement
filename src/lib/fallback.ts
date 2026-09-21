@@ -147,7 +147,7 @@ export function heuristicScoreCandidates(
         experience_fit: `${profile.years_experience} years in software engineering`,
         skills_fit: profile.skills.slice(0, 3).join(', '),
       },
-      key_highlights: key_highlights.length > 0 ? key_highlights : [profile.summary],
+      key_highlights: key_highlights.length > 0 ? key_highlights : [rubric.role_summary.slice(0, 120)],
       concerns: concerns.length > 0 ? concerns : ['Verify system design depth in technical interview'],
     };
 
@@ -170,7 +170,10 @@ export function heuristicRefine(
   filters: ObjectiveFilters;
   rubric: SubjectiveRubric;
   explanation_of_changes: string;
-  changes_summary: string[];
+  changes_summary: {
+    filters_modified: string[];
+    rubric_modified: string[];
+  };
 } {
   const lower = recruiterMessage.toLowerCase();
   const updatedFilters: ObjectiveFilters = {
@@ -232,7 +235,10 @@ export function heuristicRefine(
     filters: updatedFilters,
     rubric: updatedRubric,
     explanation_of_changes: `Refined sourcing criteria dynamically using feedback signals: ${changes.join(' ')}`,
-    changes_summary: changes,
+    changes_summary: {
+      filters_modified: changes,
+      rubric_modified: [`Recruiter Round ${round} rubric signals updated`],
+    },
   };
 }
 

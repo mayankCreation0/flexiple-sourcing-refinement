@@ -7,6 +7,7 @@ import {
 import { allProfiles, filterProfiles } from '@/lib/profiles';
 import { scoringResponseSchema } from '@/lib/validation';
 import { ObjectiveFilters, ScoredCandidate, SubjectiveRubric } from '@/lib/types';
+import { getErrorMessage } from '@/lib/errors';
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     // Step 2: Score against rubric
     const scorePrompt = buildScoreCandidatesPrompt(rubric, filteredCandidates);
-    const scoringRaw = await callGeminiJson<any>(
+    const scoringRaw = await callGeminiJson(
       SCORE_CANDIDATES_SYSTEM_PROMPT,
       scorePrompt
     );
@@ -78,12 +79,12 @@ export async function POST(req: NextRequest) {
       candidates: scoredCandidates,
       filtered_count: filteredCandidates.length,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in /api/rerank:', err);
     return NextResponse.json(
       {
         error:
-          err?.message ||
+          getErrorMessage(err) ||
           'Failed to re-rank candidates with updated criteria. Please retry.',
       },
       { status: 500 }

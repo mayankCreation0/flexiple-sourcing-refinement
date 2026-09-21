@@ -1,103 +1,314 @@
-import React, { useState } from 'react';
-import { ArrowRight, Sparkles, Terminal, CornerDownLeft } from 'lucide-react';
+'use client';
+
+import { useState, useRef } from 'react';
+import { Search, ChevronRight } from 'lucide-react';
+import TribalBackground from './TribalBackground';
+
+const EXAMPLE_QUERIES = [
+  'Senior React engineer, 5+ yrs, startup background, remote-first',
+  'Python backend lead with AWS and ML pipeline experience',
+  'Full-stack TypeScript dev with Node.js, 3-6 yrs, agile team',
+  'DevOps/SRE with Kubernetes and CI/CD ownership, scaling experience',
+];
 
 interface SearchHeroProps {
   onSearch: (query: string) => void;
   isLoading: boolean;
 }
 
-const SAMPLE_QUERIES = [
-  'RDS developers with 4-7 years of experience who have worked at startups, for a role based in Bangalore.',
-  'Node.js & TypeScript backend engineers with early-stage startup experience in Bangalore.',
-  'Senior Python engineers with 5+ years experience building distributed data pipelines.',
-];
-
-export const SearchHero: React.FC<SearchHeroProps> = ({ onSearch, isLoading }) => {
+export function SearchHero({ onSearch, isLoading }: SearchHeroProps) {
   const [query, setQuery] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim() || isLoading) return;
-    onSearch(query.trim());
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
+    if (query.trim() && !isLoading) {
+      onSearch(query.trim());
     }
   };
 
+  const handleExampleClick = (example: string) => {
+    setQuery(example);
+    textareaRef.current?.focus();
+  };
+
   return (
-    <div className="w-full max-w-3xl mx-auto py-12 px-4 sm:px-6">
-      <div className="text-center mb-8 space-y-3">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-300">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Flexiple AI Sourcing Intelligence</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-          Who are you looking to hire?
-        </h1>
-        <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto">
-          Type your requirements just like a Google search. The AI recruiter extracts
-          objective filters, drafts a subjective rubric, and ranks candidates instantly.
-        </p>
-      </div>
+    <section
+      className="relative w-full overflow-hidden"
+      style={{
+        padding: 'clamp(3rem, 8vw, 6rem) 0',
+        background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,255,255,0.06) 0%, transparent 70%)',
+      }}
+    >
+      {/* Tribal decoration — top-left */}
+      <TribalBackground
+        className="absolute top-0 left-0 -translate-x-1/3 -translate-y-1/4"
+        opacity={0.12}
+        size={400}
+        color="#00FFFF"
+      />
 
-      <form onSubmit={handleSubmit} className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300" />
-        <div className="relative bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            placeholder="e.g. RDS developers with 4-7 years of experience who have worked at startups, for a role based in Bangalore."
-            rows={3}
-            className="w-full bg-transparent text-slate-100 placeholder-slate-500 text-base sm:text-lg focus:outline-none resize-none disabled:opacity-50"
+      {/* Tribal decoration — bottom-right (magenta) */}
+      <TribalBackground
+        className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/4"
+        opacity={0.08}
+        size={350}
+        color="#FF00FF"
+      />
+
+      {/* Horizontal scan line */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '40%',
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, rgba(0,255,255,0.12), transparent)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6">
+        {/* Label */}
+        <div
+          className="flex items-center justify-center gap-2 mb-6 animate-slide-up"
+          style={{ animationDelay: '0ms' }}
+        >
+          <div
+            style={{
+              width: 24,
+              height: 1,
+              background: 'linear-gradient(90deg, transparent, #00FFFF)',
+            }}
           />
+          <span className="section-label">AI Sourcing Engine v2.0</span>
+          <div
+            style={{
+              width: 24,
+              height: 1,
+              background: 'linear-gradient(90deg, #00FFFF, transparent)',
+            }}
+          />
+        </div>
 
-          <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between">
-            <span className="text-xs text-slate-500 flex items-center">
-              <CornerDownLeft className="w-3 h-3 mr-1" />
-              Press <kbd className="mx-1 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px] text-slate-300">Enter</kbd> to source
-            </span>
+        {/* Headline */}
+        <h1
+          className="text-center animate-slide-up"
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(1.8rem, 5vw, 3.2rem)',
+            fontWeight: 800,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            lineHeight: 1.1,
+            marginBottom: '1.25rem',
+            animationDelay: '80ms',
+          }}
+        >
+          <span
+            style={{
+              color: '#00FFFF',
+              textShadow: '0 0 30px rgba(0,255,255,0.5), 0 0 80px rgba(0,255,255,0.2)',
+            }}
+          >
+            Source Smarter
+          </span>
+          <br />
+          <span
+            style={{
+              color: 'rgba(232,250,255,0.75)',
+              fontSize: 'clamp(1rem, 2.5vw, 1.5rem)',
+              fontWeight: 500,
+              letterSpacing: '0.12em',
+              display: 'block',
+              marginTop: '0.5rem',
+            }}
+          >
+            Hire with precision intelligence
+          </span>
+        </h1>
 
-            <button
-              type="submit"
-              disabled={!query.trim() || isLoading}
-              className="inline-flex items-center space-x-2 px-5 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white shadow-lg shadow-indigo-600/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
+        {/* Subtitle */}
+        <p
+          className="text-center animate-slide-up"
+          style={{
+            color: 'var(--text-secondary)',
+            fontSize: '0.95rem',
+            maxWidth: 580,
+            margin: '0 auto 2.5rem',
+            lineHeight: 1.7,
+            animationDelay: '160ms',
+          }}
+        >
+          Describe your ideal hire in plain language. Our AI extracts objective filters,
+          builds a subjective evaluation rubric, and scores candidates with cited evidence.
+        </p>
+
+        {/* Search form */}
+        <form
+          onSubmit={handleSubmit}
+          className="animate-slide-up"
+          style={{ animationDelay: '240ms' }}
+          aria-label="Candidate search form"
+        >
+          <div
+            className="relative"
+            style={{
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(0,255,255,0.3)',
+              background: 'rgba(0,0,0,0.6)',
+              boxShadow: isLoading
+                ? '0 0 30px rgba(0,255,255,0.25), 0 0 60px rgba(0,255,255,0.1)'
+                : '0 0 0px rgba(0,255,255,0)',
+              transition: 'box-shadow 0.4s ease',
+            }}
+          >
+            {/* Search icon */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '1.1rem',
+                left: '1rem',
+                color: isLoading ? '#00FFFF' : 'rgba(0,255,255,0.5)',
+                transition: 'color 0.3s',
+              }}
             >
-              <span>Source Candidates</span>
-              <ArrowRight className="w-4 h-4" />
+              <Search size={18} />
+            </div>
+
+            <textarea
+              ref={textareaRef}
+              id="search-query"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              placeholder="e.g. Senior React engineer, 5+ years, startup background, remote-first with strong TypeScript skills..."
+              rows={3}
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                padding: '1.1rem 5.5rem 1.1rem 3rem',
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-body)',
+                fontSize: '0.95rem',
+                lineHeight: 1.6,
+                resize: 'none',
+                borderRadius: 'var(--radius-md)',
+              }}
+              aria-label="Describe the candidate you are looking for"
+            />
+
+            {/* Submit button */}
+            <button
+              id="search-submit-btn"
+              type="submit"
+              disabled={isLoading || !query.trim()}
+              className="btn-cyber-solid"
+              style={{
+                position: 'absolute',
+                bottom: '0.75rem',
+                right: '0.75rem',
+                padding: '0.5rem 1.1rem',
+                fontSize: '0.65rem',
+                opacity: isLoading || !query.trim() ? 0.5 : 1,
+                cursor: isLoading || !query.trim() ? 'not-allowed' : 'pointer',
+              }}
+              aria-label="Search candidates"
+            >
+              {isLoading ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      border: '2px solid #000',
+                      borderTopColor: 'transparent',
+                      display: 'inline-block',
+                      animation: 'tribal-spin 0.6s linear infinite',
+                    }}
+                  />
+                  SCANNING
+                </span>
+              ) : (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  SEARCH
+                  <ChevronRight size={12} />
+                </span>
+              )}
             </button>
           </div>
-        </div>
-      </form>
+        </form>
 
-      <div className="mt-8">
-        <div className="flex items-center space-x-2 mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-          <Terminal className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Try an example assignment prompt</span>
-        </div>
-        <div className="space-y-2">
-          {SAMPLE_QUERIES.map((sample, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                setQuery(sample);
-              }}
-              className="w-full text-left p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700 text-xs sm:text-sm text-slate-300 hover:text-white transition flex items-center justify-between group cursor-pointer"
-            >
-              <span className="truncate pr-2">{sample}</span>
-              <span className="text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
-                Load prompt →
-              </span>
-            </button>
-          ))}
+        {/* Example queries */}
+        <div
+          className="animate-slide-up"
+          style={{ animationDelay: '320ms', marginTop: '1.5rem' }}
+        >
+          <p
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.6rem',
+              letterSpacing: '0.2em',
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              marginBottom: '0.75rem',
+              textAlign: 'center',
+            }}
+          >
+            Quick examples
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {EXAMPLE_QUERIES.map((example, i) => (
+              <button
+                key={i}
+                id={`example-query-${i}`}
+                type="button"
+                onClick={() => handleExampleClick(example)}
+                disabled={isLoading}
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.65rem',
+                  letterSpacing: '0.03em',
+                  color: 'rgba(0,255,255,0.55)',
+                  background: 'rgba(0,255,255,0.04)',
+                  border: '1px solid rgba(0,255,255,0.15)',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '0.3rem 0.75rem',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  opacity: isLoading ? 0.5 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.color = '#00FFFF';
+                    e.currentTarget.style.borderColor = 'rgba(0,255,255,0.4)';
+                    e.currentTarget.style.background = 'rgba(0,255,255,0.08)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(0,255,255,0.55)';
+                  e.currentTarget.style.borderColor = 'rgba(0,255,255,0.15)';
+                  e.currentTarget.style.background = 'rgba(0,255,255,0.04)';
+                }}
+                aria-label={`Use example: ${example}`}
+              >
+                {example.length > 55 ? example.slice(0, 55) + '…' : example}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
-};
+}

@@ -8,7 +8,7 @@ import {
   ThumbsDown,
   CheckCircle,
   AlertCircle,
-  Sparkles,
+  Zap,
 } from 'lucide-react';
 import { ScoredCandidate } from '@/lib/types';
 
@@ -20,6 +20,73 @@ interface CandidateCardProps {
   isFrozen?: boolean;
 }
 
+function ScoreRing({ score }: { score: number }) {
+  const radius = 26;
+  const circumference = 2 * Math.PI * radius;
+  const filled = (score / 100) * circumference;
+  const color =
+    score >= 85 ? '#29AB87' :
+    score >= 70 ? '#00FFFF' :
+    '#FF4500';
+
+  return (
+    <svg width="68" height="68" viewBox="0 0 68 68" fill="none" aria-hidden="true">
+      {/* Track */}
+      <circle cx="34" cy="34" r={radius} stroke="rgba(255,255,255,0.07)" strokeWidth="4" />
+      {/* Fill */}
+      <circle
+        cx="34" cy="34" r={radius}
+        stroke={color}
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeDasharray={`${filled} ${circumference}`}
+        strokeDashoffset={circumference * 0.25}
+        style={{
+          filter: `drop-shadow(0 0 4px ${color})`,
+          animation: 'score-ring-fill 1s ease-out forwards',
+          transition: 'stroke-dasharray 0.8s ease',
+        }}
+      />
+      {/* Score label */}
+      <text
+        x="34" y="34"
+        textAnchor="middle"
+        dominantBaseline="central"
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '11px',
+          fontWeight: 700,
+          fill: color,
+          letterSpacing: '0.05em',
+        }}
+      >
+        {score}
+      </text>
+    </svg>
+  );
+}
+
+function getVerdictPill(verdict: string) {
+  switch (verdict) {
+    case 'strong_match':
+      return { label: 'STRONG FIT', color: '#29AB87', bg: 'rgba(41,171,135,0.1)', border: 'rgba(41,171,135,0.3)' };
+    case 'potential_match':
+      return { label: 'POTENTIAL FIT', color: '#00FFFF', bg: 'rgba(0,255,255,0.08)', border: 'rgba(0,255,255,0.25)' };
+    default:
+      return { label: 'BORDERLINE', color: '#FF4500', bg: 'rgba(255,69,0,0.08)', border: 'rgba(255,69,0,0.25)' };
+  }
+}
+
+function getCompanyTypePill(type: string) {
+  const map: Record<string, { color: string; bg: string; border: string }> = {
+    startup:    { color: '#FF00FF', bg: 'rgba(255,0,255,0.07)',   border: 'rgba(255,0,255,0.2)' },
+    scaleup:    { color: '#BF00FF', bg: 'rgba(191,0,255,0.07)',   border: 'rgba(191,0,255,0.2)' },
+    enterprise: { color: '#00FFFF', bg: 'rgba(0,255,255,0.07)',   border: 'rgba(0,255,255,0.2)' },
+    agency:     { color: '#FF4500', bg: 'rgba(255,69,0,0.07)',    border: 'rgba(255,69,0,0.2)' },
+  };
+  return map[type] ?? { color: 'var(--text-muted)', bg: 'transparent', border: 'var(--border-subtle)' };
+}
+
 export const CandidateCard: React.FC<CandidateCardProps> = ({
   candidate,
   index,
@@ -28,135 +95,225 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
   isFrozen = false,
 }) => {
   const { profile, score } = candidate;
+  const verdict = getVerdictPill(score.verdict);
+  const companyStyle = getCompanyTypePill(profile.current_company_type);
 
-  const getScoreColor = (fitScore: number) => {
-    if (fitScore >= 80) return 'text-emerald-400 bg-emerald-950/70 border-emerald-800/80';
-    if (fitScore >= 60) return 'text-amber-400 bg-amber-950/70 border-amber-800/80';
-    return 'text-rose-400 bg-rose-950/70 border-rose-800/80';
-  };
+  const borderColor =
+    reaction === 'yes' ? 'rgba(41,171,135,0.5)' :
+    reaction === 'no'  ? 'rgba(255,69,0,0.3)' :
+    'rgba(0,255,255,0.2)';
 
-  const getVerdictLabel = (verdict: string) => {
-    switch (verdict) {
-      case 'strong_match':
-        return 'Strong Fit';
-      case 'potential_match':
-        return 'Potential Fit';
-      case 'weak_match':
-      default:
-        return 'Borderline';
-    }
-  };
+  const boxShadow =
+    reaction === 'yes' ? '0 0 20px rgba(41,171,135,0.15)' :
+    '0 0 0px transparent';
 
   return (
     <div
-      className={`relative rounded-2xl border transition-all duration-200 p-5 ${
-        reaction === 'yes'
-          ? 'bg-slate-900/95 border-emerald-600/70 shadow-lg shadow-emerald-950/30 ring-1 ring-emerald-500/30'
-          : reaction === 'no'
-          ? 'bg-slate-900/60 border-rose-900/50 opacity-70'
-          : 'bg-slate-900/90 border-slate-800 hover:border-slate-700 shadow-xl'
-      }`}
+      className="cyber-card animate-slide-up"
+      style={{
+        padding: '1.25rem',
+        border: `1px solid ${borderColor}`,
+        boxShadow,
+        opacity: reaction === 'no' ? 0.55 : 1,
+        transition: 'all 0.3s ease',
+        animationDelay: `${index * 80}ms`,
+      }}
     >
-      {/* CARD HEADER */}
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 text-indigo-400 font-bold text-sm shadow-inner shrink-0">
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' }}>
+        {/* Left: rank + name */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+          {/* Rank badge */}
+          <div
+            style={{
+              width: 30, height: 30,
+              borderRadius: '4px',
+              border: '1px solid rgba(0,255,255,0.3)',
+              background: 'rgba(0,255,255,0.05)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-display)',
+              fontSize: '0.6rem',
+              fontWeight: 700,
+              color: '#00FFFF',
+              flexShrink: 0,
+              letterSpacing: '0.1em',
+            }}
+          >
             #{index + 1}
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h3 className="text-base font-bold text-white tracking-tight">
+
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  color: 'var(--text-primary)',
+                }}
+              >
                 {profile.name}
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.6rem',
+                  letterSpacing: '0.08em',
+                  color: 'var(--text-secondary)',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '3px',
+                  padding: '1px 6px',
+                }}
+              >
                 {profile.current_title}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-400">
-              <span className="flex items-center">
-                <Building2 className="w-3.5 h-3.5 mr-1 text-slate-500" />
-                <strong className="text-slate-300 font-medium mr-1">
-                  {profile.current_company}
-                </strong>
-                <span className="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-400 border border-indigo-900/60">
-                  {profile.current_company_type}
-                </span>
+
+            {/* Meta row */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.35rem', alignItems: 'center' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                <Building2 size={11} color="rgba(0,255,255,0.4)" />
+                <strong style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{profile.current_company}</strong>
               </span>
-              <span className="flex items-center">
-                <Clock className="w-3.5 h-3.5 mr-1 text-slate-500" />
-                {profile.years_experience} yrs exp
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.55rem',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: companyStyle.color,
+                  background: companyStyle.bg,
+                  border: `1px solid ${companyStyle.border}`,
+                  borderRadius: '3px',
+                  padding: '1px 5px',
+                }}
+              >
+                {profile.current_company_type}
               </span>
-              <span className="flex items-center">
-                <MapPin className="w-3.5 h-3.5 mr-1 text-slate-500" />
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                <Clock size={10} color="rgba(0,255,255,0.3)" />
+                {profile.years_experience}y
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                <MapPin size={10} color="rgba(0,255,255,0.3)" />
                 {profile.location}
               </span>
             </div>
           </div>
         </div>
 
-        {/* FIT SCORE PILL */}
-        <div
-          className={`px-3 py-1 rounded-xl border flex flex-col items-end shrink-0 ${getScoreColor(
-            score.fit_score
-          )}`}
-        >
-          <div className="flex items-center space-x-1">
-            <span className="text-base font-extrabold">{score.fit_score}%</span>
-          </div>
-          <span className="text-[10px] font-semibold uppercase tracking-wider">
-            {getVerdictLabel(score.verdict)}
+        {/* Right: Score ring */}
+        <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <ScoreRing score={score.fit_score} />
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.52rem',
+              letterSpacing: '0.1em',
+              color: verdict.color,
+              background: verdict.bg,
+              border: `1px solid ${verdict.border}`,
+              borderRadius: '3px',
+              padding: '1px 6px',
+              textTransform: 'uppercase',
+            }}
+          >
+            {verdict.label}
           </span>
         </div>
       </div>
 
-      {/* WHY THIS PROFILE MATCHED (GROUNDED CITATION EXPLANATION) */}
-      <div className="p-3.5 rounded-xl bg-slate-950/70 border border-indigo-950/60 mb-3 space-y-2">
-        <div className="flex items-center space-x-1.5 text-xs font-semibold text-indigo-300">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Why this profile matches the rubric</span>
+      {/* ── Why this profile ── */}
+      <div
+        style={{
+          background: 'rgba(0,0,0,0.5)',
+          border: '1px solid rgba(0,255,255,0.1)',
+          borderRadius: 'var(--radius-sm)',
+          padding: '0.75rem',
+          marginBottom: '0.75rem',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Subtle top edge */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+            background: 'linear-gradient(90deg, transparent, rgba(0,255,255,0.25), transparent)',
+          }}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.4rem' }}>
+          <Zap size={11} color="#00FFFF" />
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.6rem',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              color: '#00FFFF',
+              opacity: 0.8,
+            }}
+          >
+            Why this profile matches
+          </span>
         </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
           {score.explanation}
         </p>
 
-        {/* STRUCTURED FIELD CITATIONS */}
+        {/* Field citations grid */}
         {score.cited_fields && (
-          <div className="pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '0.4rem',
+              marginTop: '0.6rem',
+              paddingTop: '0.6rem',
+              borderTop: '1px solid rgba(0,255,255,0.08)',
+            }}
+          >
             {score.cited_fields.company_fit && (
-              <div className="flex items-start space-x-1 text-slate-400">
-                <span className="font-semibold text-slate-300">🏢 Company:</span>
-                <span className="truncate">{score.cited_fields.company_fit}</span>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Company: </span>
+                {score.cited_fields.company_fit}
               </div>
             )}
             {score.cited_fields.experience_fit && (
-              <div className="flex items-start space-x-1 text-slate-400">
-                <span className="font-semibold text-slate-300">⏱️ Experience:</span>
-                <span className="truncate">{score.cited_fields.experience_fit}</span>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Experience: </span>
+                {score.cited_fields.experience_fit}
               </div>
             )}
             {score.cited_fields.skills_fit && (
-              <div className="flex items-start space-x-1 text-slate-400">
-                <span className="font-semibold text-slate-300">🛠️ Skills:</span>
-                <span className="truncate">{score.cited_fields.skills_fit}</span>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Skills: </span>
+                {score.cited_fields.skills_fit}
               </div>
             )}
             {score.cited_fields.education_fit && (
-              <div className="flex items-start space-x-1 text-slate-400">
-                <span className="font-semibold text-slate-300">🎓 Education:</span>
-                <span className="truncate">{score.cited_fields.education_fit}</span>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Education: </span>
+                {score.cited_fields.education_fit}
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* CANDIDATE SKILLS & PAST COMPANIES */}
-      <div className="mb-4 space-y-2">
-        <div className="flex flex-wrap gap-1.5">
-          {profile.skills.map((skill) => (
+      {/* ── Skills ── */}
+      <div style={{ marginBottom: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+          {profile.skills.map((skill, i) => (
             <span
               key={skill}
-              className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/50"
+              className={i % 3 === 0 ? 'pill-cyan' : i % 3 === 1 ? 'pill-cyan' : 'pill-cyan'}
+              style={{
+                opacity: i < 4 ? 1 : 0.6,
+              }}
             >
               {skill}
             </span>
@@ -164,69 +321,105 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
         </div>
 
         {profile.past_companies.length > 0 && (
-          <div className="text-[11px] text-slate-400 flex items-center space-x-1 truncate">
-            <span className="text-slate-500 font-medium">Prior:</span>
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', gap: 4 }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Prior:</span>
             <span>
-              {profile.past_companies
-                .map((p) => `${p.company} (${p.company_type}, ${p.years}y)`)
-                .join(' • ')}
+              {profile.past_companies.map((p) => `${p.company} (${p.company_type}, ${p.years}y)`).join(' · ')}
             </span>
           </div>
         )}
 
         {profile.education && (
-          <div className="text-[11px] text-slate-400 flex items-center space-x-1 truncate">
-            <GraduationCap className="w-3 h-3 text-slate-500 shrink-0" />
-            <span className="truncate">{profile.education}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+            <GraduationCap size={10} color="rgba(0,255,255,0.3)" />
+            <span>{profile.education}</span>
           </div>
         )}
       </div>
 
-      {/* FOOTER ACTIONS: REACTION / FEEDBACK */}
-      <div className="flex items-center justify-between pt-3 border-t border-slate-800/80">
-        <div className="flex items-center space-x-2">
+      {/* ── Footer: Reaction ── */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingTop: '0.75rem',
+          borderTop: '1px solid rgba(0,255,255,0.08)',
+        }}
+      >
+        <div>
           {reaction === 'yes' ? (
-            <span className="inline-flex items-center space-x-1 text-xs text-emerald-400 font-medium">
-              <CheckCircle className="w-3.5 h-3.5" />
-              <span>Marked as Good Match</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.7rem', color: '#29AB87' }}>
+              <CheckCircle size={12} />
+              Marked as Good Match
             </span>
           ) : reaction === 'no' ? (
-            <span className="inline-flex items-center space-x-1 text-xs text-rose-400 font-medium">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>Marked as Not a Fit</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.7rem', color: '#FF4500' }}>
+              <AlertCircle size={12} />
+              Marked as Not a Fit
             </span>
           ) : (
-            <span className="text-xs text-slate-500">
-              Does Candidate #{index + 1} match?
+            <span
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '0.08em' }}
+            >
+              {'>'} Rate candidate #{index + 1}
             </span>
           )}
         </div>
 
         {!isFrozen && (
-          <div className="flex items-center space-x-2">
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
+              id={`match-btn-${profile.id}`}
               type="button"
               onClick={() => onReaction(profile.id, 'yes')}
-              className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition active:scale-95 cursor-pointer ${
-                reaction === 'yes'
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/40'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700'
-              }`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '0.35rem 0.85rem',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.65rem',
+                fontFamily: 'var(--font-display)',
+                fontWeight: 600,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                background: reaction === 'yes' ? 'rgba(41,171,135,0.2)' : 'transparent',
+                color: '#29AB87',
+                border: `1px solid ${reaction === 'yes' ? '#29AB87' : 'rgba(41,171,135,0.3)'}`,
+              }}
+              aria-label={`Mark candidate ${profile.name} as a match`}
             >
-              <ThumbsUp className="w-3 h-3" />
-              <span>Match</span>
+              <ThumbsUp size={11} />
+              Match
             </button>
             <button
+              id={`skip-btn-${profile.id}`}
               type="button"
               onClick={() => onReaction(profile.id, 'no')}
-              className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition active:scale-95 cursor-pointer ${
-                reaction === 'no'
-                  ? 'bg-rose-600 text-white shadow-md shadow-rose-900/40'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700'
-              }`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '0.35rem 0.85rem',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.65rem',
+                fontFamily: 'var(--font-display)',
+                fontWeight: 600,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                background: reaction === 'no' ? 'rgba(255,69,0,0.12)' : 'transparent',
+                color: '#FF4500',
+                border: `1px solid ${reaction === 'no' ? '#FF4500' : 'rgba(255,69,0,0.3)'}`,
+              }}
+              aria-label={`Skip candidate ${profile.name}`}
             >
-              <ThumbsDown className="w-3 h-3" />
-              <span>Skip</span>
+              <ThumbsDown size={11} />
+              Skip
             </button>
           </div>
         )}

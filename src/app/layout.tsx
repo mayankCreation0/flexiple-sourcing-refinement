@@ -1,21 +1,13 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
 
 export const metadata: Metadata = {
   title: 'Flexiple AI Recruiter | Sourcing Refinement Loop',
   description:
-    'Interactive AI sourcing refinement platform: translate free-text hiring requirements into objective filters, subjective fit rubrics, and cited candidate shortlists.',
+    'Cyber-tribal AI sourcing platform: translate free-text hiring requirements into objective filters, subjective fit rubrics, and cited candidate shortlists. Powered by Gemini AI.',
+  keywords: ['AI recruiter', 'sourcing', 'talent', 'Flexiple', 'hiring', 'candidate'],
+  authors: [{ name: 'Flexiple' }],
+  themeColor: '#000000',
 };
 
 export default function RootLayout({
@@ -24,11 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
-    >
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
+    <html lang="en" className="h-full">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body className="min-h-[100dvh] flex flex-col">
         {children}
       </body>
     </html>
