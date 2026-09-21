@@ -3,14 +3,6 @@ import { CandidateProfile, ObjectiveFilters } from './types';
 
 export const allProfiles: CandidateProfile[] = profilesData as CandidateProfile[];
 
-export interface FilterResult {
-  candidate: CandidateProfile;
-  matchesHardFilters: boolean;
-  matchScore: number;
-  matchReasons: string[];
-  mismatches: string[];
-}
-
 /**
  * Checks if candidate has experience with a specific company type
  * across both current and past roles.
@@ -51,100 +43,105 @@ export function getMatchedSkills(
   });
 }
 
+function passesHardYoE(candidate: CandidateProfile, filters: ObjectiveFilters): boolean {
+  const yoe = candidate.years_experience;
+  const minYoE = filters.min_years_experience;
+  const maxYoE = filters.max_years_experience;
+  if (minYoE != null && yoe < minYoE) return false;
+  if (maxYoE != null && yoe > maxYoE) return false;
+  return true;
+}
+
+function passesHardLocation(candidate: CandidateProfile, filters: ObjectiveFilters): boolean {
+  if (!filters.locations.length) return true;
+  return filters.locations.some((loc) =>
+    candidate.location.toLowerCase().includes(loc.toLowerCase())
+  );
+}
+
+function passesHardCompanyType(candidate: CandidateProfile, filters: ObjectiveFilters): boolean {
+  if (!filters.company_types.length) return true;
+  return hasCompanyType(candidate, filters.company_types);
+}
+
+/** Soft skill gate: require at least one matched skill when skills are specified. */
+function passesHardSkills(candidate: CandidateProfile, filters: ObjectiveFilters): boolean {
+  if (!filters.skills.length) return true;
+  return getMatchedSkills(candidate, filters.skills).length > 0;
+}
+
+function scoreCandidate(
+  candidate: CandidateProfile,
+  filters: ObjectiveFilters
+): number {
+  let score = 0;
+  const yoe = candidate.years_experience;
+  const minYoE = filters.min_years_experience ?? 0;
+  const maxYoE = filters.max_years_experience ?? 50;
+
+  if (yoe >= minYoE && yoe <= maxYoE) score += 25;
+
+  if (filters.locations.length > 0) {
+    if (passesHardLocation(candidate, filters)) score += 25;
+  } else {
+    score += 25;
+  }
+
+  if (filters.company_types.length > 0) {
+    if (hasCompanyType(candidate, filters.company_types)) score += 25;
+  } else {
+    score += 25;
+  }
+
+  if (filters.skills.length > 0) {
+    const matched = getMatchedSkills(candidate, filters.skills);
+    score += Math.round((matched.length / filters.skills.length) * 25);
+  } else {
+    score += 25;
+  }
+
+  return score;
+}
+
 /**
- * Filter and prioritize candidate profiles against objective filters.
- * Returns both strictly matching candidates and top candidates with soft relaxation
- * if strict pool is too small.
+ * Filter profiles against objective filters.
+ * YoE, location, and company type are hard constraints (never soft-relaxed).
+ * Skills may soft-relax only if the hard pool is too small — so a refined
+ * Min YoE of 5 never returns a 4-year candidate.
  */
 export function filterProfiles(
   filters: ObjectiveFilters,
   profiles: CandidateProfile[] = allProfiles,
   targetCount: number = 8
 ): CandidateProfile[] {
-  const scored = profiles.map((candidate) => {
-    let score = 0;
-    const reasons: string[] = [];
-    const mismatches: string[] = [];
+  const rank = (list: CandidateProfile[]) =>
+    [...list]
+      .map((candidate) => ({ candidate, score: scoreCandidate(candidate, filters) }))
+      .sort((a, b) => b.score - a.score)
+      .map((s) => s.candidate);
 
-    // 1. Experience Check
-    const yoe = candidate.years_experience;
-    const minYoE = filters.min_years_experience ?? 0;
-    const maxYoE = filters.max_years_experience ?? 50;
+  const hardMatch = profiles.filter(
+    (c) =>
+      passesHardYoE(c, filters) &&
+      passesHardLocation(c, filters) &&
+      passesHardCompanyType(c, filters) &&
+      passesHardSkills(c, filters)
+  );
 
-    if (yoe >= minYoE && yoe <= maxYoE) {
-      score += 25;
-      reasons.push(`${yoe} years experience fits ${minYoE}-${maxYoE} range`);
-    } else if (Math.abs(yoe - minYoE) <= 1 || Math.abs(yoe - maxYoE) <= 1) {
-      score += 15;
-      mismatches.push(
-        `${yoe} years experience is near margin of ${minYoE}-${maxYoE}`
-      );
-    } else {
-      mismatches.push(
-        `${yoe} years experience outside ${minYoE}-${maxYoE} range`
-      );
-    }
+  if (hardMatch.length >= Math.min(4, targetCount)) {
+    return rank(hardMatch).slice(0, targetCount);
+  }
 
-    // 2. Location Check
-    if (filters.locations.length > 0) {
-      const locMatch = filters.locations.some((loc) =>
-        candidate.location.toLowerCase().includes(loc.toLowerCase())
-      );
-      if (locMatch) {
-        score += 25;
-        reasons.push(`Based in ${candidate.location}`);
-      } else {
-        mismatches.push(
-          `Location ${candidate.location} does not match ${filters.locations.join(
-            ', '
-          )}`
-        );
-      }
-    } else {
-      score += 25;
-    }
+  // Soft-relax skills only — YoE / location / company stay hard
+  const skillRelaxed = profiles.filter(
+    (c) =>
+      passesHardYoE(c, filters) &&
+      passesHardLocation(c, filters) &&
+      passesHardCompanyType(c, filters)
+  );
 
-    // 3. Company Type Check (startup / scaleup / enterprise / agency)
-    if (filters.company_types.length > 0) {
-      if (hasCompanyType(candidate, filters.company_types)) {
-        score += 25;
-        reasons.push(
-          `Experience at ${candidate.current_company_type} (${candidate.current_company})`
-        );
-      } else {
-        mismatches.push(
-          `No documented experience at ${filters.company_types.join('/')}`
-        );
-      }
-    } else {
-      score += 25;
-    }
-
-    // 4. Skills Check
-    if (filters.skills.length > 0) {
-      const matched = getMatchedSkills(candidate, filters.skills);
-      const ratio = matched.length / filters.skills.length;
-      score += Math.round(ratio * 25);
-      if (matched.length > 0) {
-        reasons.push(`Skills: ${matched.join(', ')}`);
-      } else {
-        mismatches.push(`Lacks required skills: ${filters.skills.join(', ')}`);
-      }
-    } else {
-      score += 25;
-    }
-
-    return {
-      candidate,
-      score,
-      reasons,
-      mismatches,
-    };
-  });
-
-  // Sort descending by objective match score
-  scored.sort((a, b) => b.score - a.score);
-
-  // Return top N candidates to pass to LLM scoring layer
-  return scored.slice(0, targetCount).map((s) => s.candidate);
+  return rank(skillRelaxed.length > 0 ? skillRelaxed : hardMatch).slice(
+    0,
+    targetCount
+  );
 }

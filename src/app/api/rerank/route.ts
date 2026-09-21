@@ -8,6 +8,7 @@ import { allProfiles, filterProfiles } from '@/lib/profiles';
 import { scoringResponseSchema } from '@/lib/validation';
 import { ObjectiveFilters, ScoredCandidate, SubjectiveRubric } from '@/lib/types';
 import { getErrorMessage } from '@/lib/errors';
+import { heuristicScoreCandidates } from '@/lib/fallback';
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,47 +34,64 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Step 1: Re-filter profiles
+    // Step 1: Re-filter profiles (hard objective constraints)
     const filteredCandidates = filterProfiles(filters, allProfiles, 8);
 
-    // Step 2: Score against rubric
-    const scorePrompt = buildScoreCandidatesPrompt(rubric, filteredCandidates);
-    const scoringRaw = await callGeminiJson(
-      SCORE_CANDIDATES_SYSTEM_PROMPT,
-      scorePrompt
-    );
-    const validatedScoring = scoringResponseSchema.parse(scoringRaw);
+    if (filteredCandidates.length === 0) {
+      return NextResponse.json({
+        candidates: [],
+        filtered_count: 0,
+        message: 'No candidates matched the updated criteria. Consider loosening filters.',
+      });
+    }
 
-    const scoredCandidates: ScoredCandidate[] = filteredCandidates
-      .map((profile) => {
-        const scoreMatch = validatedScoring.candidate_scores.find(
-          (s) => s.candidate_id === profile.id
-        );
-        if (!scoreMatch) {
-          return {
-            profile,
-            score: {
-              candidate_id: profile.id,
-              fit_score: 70,
-              verdict: 'potential_match' as const,
-              explanation: `${profile.name} matches edited criteria based on experience at ${profile.current_company}.`,
-              cited_fields: {
-                company_fit: `${profile.current_company} (${profile.current_company_type})`,
-                experience_fit: `${profile.years_experience} years experience`,
-                skills_fit: profile.skills.slice(0, 3).join(', '),
+    // Step 2: Score against rubric (LLM with heuristic fallback)
+    let scoredCandidates: ScoredCandidate[] = [];
+    try {
+      const scorePrompt = buildScoreCandidatesPrompt(rubric, filteredCandidates);
+      const scoringRaw = await callGeminiJson(
+        SCORE_CANDIDATES_SYSTEM_PROMPT,
+        scorePrompt
+      );
+      const validatedScoring = scoringResponseSchema.parse(scoringRaw);
+
+      scoredCandidates = filteredCandidates
+        .map((profile) => {
+          const scoreMatch = validatedScoring.candidate_scores.find(
+            (s) => s.candidate_id === profile.id
+          );
+          if (!scoreMatch) {
+            return {
+              profile,
+              score: {
+                candidate_id: profile.id,
+                fit_score: 70,
+                verdict: 'potential_match' as const,
+                explanation: `${profile.name} matches edited criteria based on experience at ${profile.current_company}.`,
+                cited_fields: {
+                  company_fit: `${profile.current_company} (${profile.current_company_type})`,
+                  experience_fit: `${profile.years_experience} years experience`,
+                  skills_fit: profile.skills.slice(0, 3).join(', '),
+                },
+                key_highlights: [profile.summary],
+                concerns: [],
               },
-              key_highlights: [profile.summary],
-              concerns: [],
-            },
-          };
-        }
-        return {
-          profile,
-          score: scoreMatch,
-        };
-      })
-      .sort((a, b) => b.score.fit_score - a.score.fit_score)
-      .slice(0, 5);
+            };
+          }
+          return { profile, score: scoreMatch };
+        })
+        .sort((a, b) => b.score.fit_score - a.score.fit_score)
+        .slice(0, 5);
+    } catch (scoringErr: unknown) {
+      console.warn('Gemini re-rank scoring unavailable, using heuristic:', getErrorMessage(scoringErr));
+      scoredCandidates = heuristicScoreCandidates(
+        filteredCandidates,
+        rubric.role_summary,
+        rubric
+      )
+        .sort((a, b) => b.score.fit_score - a.score.fit_score)
+        .slice(0, 5);
+    }
 
     return NextResponse.json({
       candidates: scoredCandidates,
